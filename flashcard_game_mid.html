@@ -297,32 +297,68 @@ let currentModeLabel='—';
 function hideAll(){ ['flashcardUi','listenUi','spellingUi','matchUi'].forEach(id=>$(id).classList.add('hidden')); try{ speechSynthesis.cancel(); }catch(e){} clearTimeout(flipTimer); clearInterval(countdownInterval); }
 function setMode(m){ if(!ensure()) return; initAudio(); hideAll(); if(m==='study'){ currentModeLabel='학습'; isQuiz=false; $('flashcardUi').classList.remove('hidden'); idx=0; loadCard(false); } else if(m==='quiz'){ currentModeLabel='퀴즈'; isQuiz=true; $('flashcardUi').classList.remove('hidden'); idx=0; loadCard(true); } else if(m==='listen'){ currentModeLabel='듣고 찾기'; $('listenUi').classList.remove('hidden'); startListen(); } else if(m==='spelling'){ currentModeLabel='Spelling'; $('spellingUi').classList.remove('hidden'); startSpelling(); } else if(m==='match'){ currentModeLabel='Game'; $('matchUi').classList.remove('hidden'); startMatch(); } updateChips(); }
 
-/* Flashcard / Quiz */
+/* ===================== Flashcard / Quiz ===================== */
 const flashcard=$('flashcard'), front=$('cardFront'), back=$('cardBack');
-function loadCard(quiz){ const c=data[idx]; flashcard.classList.remove('is-flipped'); front.textContent=c.back; back.textContent=c.front; $('cardCounter').textContent=`${idx+1} / ${data.length}`; $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
-$('modeTitle').classList.add('hidden'); 
-if(quiz){ $('prevBtn').disabled=true; $('nextBtn').disabled=true; let cnt=QUIZ_DELAY/1000; $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; clearInterval(countdownInterval); countdownInterval=setInterval(()=>{ cnt--; if(cnt>0) $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; },1000); clearTimeout(flipTimer); 
-         // flashcard.classList.add('is-flipped'); sfxFlip(); 아래에 이 코드를 적용하세요.
+function loadCard(quiz){ 
+    const c=data[idx]; 
+    
+    flashcard.classList.remove('is-flipped'); 
+    front.textContent=c.back; 
+    back.textContent=c.front; 
+    $('cardCounter').textContent=`${idx+1} / ${data.length}`; 
+    $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
+    $('modeTitle').textContent = quiz? '퀴즈: 영어 → (뒤집힘) 한글' : '학습: 영어 카드 클릭 시 뒤집힘'; 
+    
+    // 카운트다운 인터벌과 플립 타이머 초기화
+    clearTimeout(flipTimer); 
+    clearInterval(countdownInterval); 
+
+    if(quiz){ 
+        $('prevBtn').disabled=true; 
+        $('nextBtn').disabled=true; 
+        
+        let cnt=QUIZ_DELAY/1000; 
+        $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; 
+        
+        // 1. 카운트다운 로직
+        countdownInterval=setInterval(()=>{ 
+            cnt--; 
+            if(cnt>0) $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; 
+        },1000); 
+        
+        // 2. 3초 후 카드 뒤집기
         flipTimer=setTimeout(()=>{ 
             flashcard.classList.add('is-flipped'); 
             sfxFlip(); 
             
-            // ⭐️ [수정] 정답 노출 메시지 업데이트
+            // ⭐️ [깜빡임 방지 로직 적용]
             $('countdownDisplay').textContent = '정답 노출! 1.6초 후 다음 단어로 자동 이동합니다.';
-            
-            // 1.6초 후 다음 단어로 자동 이동 (미리 노출 오류 방지 로직)
+
             setTimeout(() => {
-                 // 1. 다음 단어를 로드하기 전에 현재 카드를 잠시 숨김
+                 // 1. 다음 단어 로드 전에 카드를 숨김 (깜빡이는 순간을 감춥니다.)
                  flashcard.style.visibility = 'hidden'; 
                  
-                 // 2. 0.1초 뒤에 다음 카드를 로드하고 다시 보이게 함
+                 // 2. 0.05초 뒤에 다음 단어 로드 및 다시 보임
                  setTimeout(() => {
-                     flashcard.style.visibility = 'visible'; 
-                     advance('next'); // 다음 단어 로드
-                 }, 100); // 0.1초 뒤에 다음 카드 로드
-            }, 1600); // 1.6초 뒤에 이동 시작
+                     flashcard.style.visibility = 'visible'; // 새 내용으로 업데이트된 카드를 다시 보이게 함
+                     advance('next'); // 다음 단어 로드 (advance 함수는 그대로 사용)
+                 }, 50); // 0.05초는 내용이 업데이트되기에 충분히 짧은 시간입니다.
+            }, 1600); 
             
-        }, QUIZ_DELAY); flashcard.onclick=null; } else { $('prevBtn').disabled=(idx===0); $('nextBtn').disabled=(idx===data.length-1); flashcard.onclick=()=>{ flashcard.classList.toggle('is-flipped'); sfxFlip(); speak(c.back); }; } }
+        }, QUIZ_DELAY); // 3초 카운트다운
+        
+        flashcard.onclick=null; 
+    } else { 
+        // 학습 모드
+        $('prevBtn').disabled=false; 
+        $('nextBtn').disabled=false; 
+        flashcard.onclick=()=>{ 
+            flashcard.classList.toggle('is-flipped'); 
+            sfxFlip(); 
+            speak(c.back); 
+        }; 
+    } 
+}
 function advance(dir){ if(isQuiz){ clearTimeout(flipTimer); clearInterval(countdownInterval); } if(dir==='next'){ if(idx<data.length-1) idx++; } else if(dir==='prev'){ if(idx>0) idx--; } loadCard(isQuiz); }
 function nextCard(){ advance('next'); }
 function prevCard(){ advance('prev'); }

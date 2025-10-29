@@ -103,6 +103,12 @@
 
     .hidden{ display:none }
   </style>
+
+<style id="repo-loader-safety">
+.panel .row { position: relative; }
+#repoBtn { position: relative; z-index: 1; }
+</style>
+
 </head>
 <body>
   <div class="wrap">
@@ -120,7 +126,7 @@
           <div class="row">
             <input id="fileInput" type="file" accept=".json,application/json" class="hidden"/>
             <button id="loadBtn" class="btn btn-primary">로컬파일 불러오기</button>
-    <button id="repoBtn" class="btn">저장소 불러오기</button>
+    <button id="repoBtn" class="btn" type="button" onclick="window.__repoLoad && window.__repoLoad()" >저장소 불러오기</button>
             <button id="clearBtn" class="btn">초기화</button>
           </div>
         </section>

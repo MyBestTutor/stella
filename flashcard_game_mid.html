@@ -1,196 +1,186 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"/>
-  <title>단어 학습 · Planner UI (중등 · 5모드 · 효과음)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <style>
-    /* Google Fonts - Pretendard (깔끔한 폰트) */
-    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+  <meta charset="utf-8"/>
+  <title>단어 학습 · Planner UI (중등 · 5모드 · 효과음)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    /* Google Fonts - Pretendard (깔끔한 폰트) */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 
-    /* ===== Design tokens: calm, planner-like ===== */
-    :root{
-      --bg:#f7f8fa;           /* page bg */
-      --panel:#ffffff;         /* cards/panels */
-      --ink:#0b1220;           /* main text */
-      --muted:#667085;         /* secondary text */
-      --border:#e5e7eb;        /* subtle borders */
-      --accent:#0ea5e9;        /* cyan accent (subtle) */
-      --radius:12px;           /* tighter radius */
-      --shadow:0 6px 18px rgba(2,6,23,.06); /* soft shadow */
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0}
-    body{
-      /* 폰트 변경: Pretendard를 최우선으로 적용하여 깔끔한 느낌 부여 */
-      font-family: 'Pretendard', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      color:var(--ink); background:var(--bg);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
-    .wrap{ width:min(960px,96vw); margin:22px auto; }
+    /* ===== Design tokens: calm, planner-like ===== */
+    :root{
+      --bg:#f7f8fa;           /* page bg */
+      --panel:#ffffff;         /* cards/panels */
+      --ink:#0b1220;           /* main text */
+      --muted:#667085;         /* secondary text */
+      --border:#e5e7eb;        /* subtle borders */
+      --accent:#0ea5e9;        /* cyan accent (subtle) */
+      --radius:12px;           /* tighter radius */
+      --shadow:0 6px 18px rgba(2,6,23,.06); /* soft shadow */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0}
+    body{
+      /* 폰트 변경: Pretendard를 최우선으로 적용하여 깔끔한 느낌 부여 */
+      font-family: 'Pretendard', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color:var(--ink); background:var(--bg);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{ width:min(960px,96vw); margin:22px auto; }
 
-    /* ===== AppBar ===== */
-    .appbar{ position:sticky; top:0; z-index:10; background:rgba(255,255,255,.9); backdrop-filter:saturate(160%) blur(6px);
-      border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
-      display:flex; align-items:center; gap:12px; padding:10px 12px; }
-    /* 굵기 조정 (800 -> 700) */
-    .title{ font-weight:700; letter-spacing:-.2px; font-size:1.05rem; }
-    .spacer{ flex:1 }
-    .chip{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
-      border:1px solid var(--border); background:#fff; color:var(--muted); font-weight:700; font-size:.9rem }
+    /* ===== AppBar ===== */
+    .appbar{ position:sticky; top:0; z-index:10; background:rgba(255,255,255,.9); backdrop-filter:saturate(160%) blur(6px);
+      border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
+      display:flex; align-items:center; gap:12px; padding:10px 12px; }
+    .title{ font-weight:700; letter-spacing:-.2px; font-size:1.05rem; }
+    .spacer{ flex:1 }
+    .chip{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border); background:#fff; color:var(--muted); font-weight:700; font-size:.9rem }
 
-    /* ===== Sections / Panels ===== */
-    .panel{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; }
-    /* 굵기 조정 (800 -> 700) */
-    .panel h3{ margin:0 0 8px; font-size:0.98rem; font-weight:700; letter-spacing:-.2px; color:#0f172a }
-    .grid{ display:grid; gap:12px }
-    .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
-    @media(min-width:900px){ .layout{ display:grid; grid-template-columns:280px 1fr; gap:12px } }
+    /* ===== Sections / Panels ===== */
+    .panel{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; }
+    .panel h3{ margin:0 0 8px; font-size:0.98rem; font-weight:700; letter-spacing:-.2px; color:#0f172a }
+    .grid{ display:grid; gap:12px }
+    .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+    @media(min-width:900px){ .layout{ display:grid; grid-template-columns:280px 1fr; gap:12px } }
 
-    /* ===== Controls ===== */
-    .btn{ appearance:none; border:1px solid var(--border); background:#fff; color:var(--ink);
-      border-radius:10px; padding:10px 14px; /* 굵기 조정 (800 -> 600) */ font-weight:600; cursor:pointer; box-shadow:var(--shadow);
-      transition: background .12s ease, border-color .12s ease }
-    .btn:hover{ background:#f8fafc }
-    .btn:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none }
-    .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent) }
+    /* ===== Controls ===== */
+    .btn{ appearance:none; border:1px solid var(--border); background:#fff; color:var(--ink);
+      border-radius:10px; padding:10px 14px; font-weight:600; cursor:pointer; box-shadow:var(--shadow);
+      transition: background .12s ease, border-color .12s ease }
+    .btn:hover{ background:#f8fafc }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none }
+    .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent) }
 
-    /* ===== Flashcard ===== */
-    .flashcard-box{ width:min(560px,90vw); height:232px; margin:8px auto; perspective:1000px }
-    .flashcard{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .45s }
-    .flashcard.is-flipped{ transform:rotateY(180deg) }
-    .face{ position:absolute; inset:0; display:grid; place-items:center; backface-visibility:hidden; border-radius:10px; border:1px solid var(--border); }
-    /* 굵기 유지: 카드의 앞면은 강조 */
-    .front{ background:#ffffff; color:#0b1220; font-weight:800; font-size:2rem }
-    /* 굵기 조정 (700 -> 600) */
-    .back{ background:#f9fafb; color:#0b1220; font-weight:600; font-size:1.5rem; transform:rotateY(180deg) }
-    .counter{ text-align:center; color:var(--muted); font-weight:700; margin-top:4px }
-    .hint{ text-align:center; color:#0369a1; font-weight:700; min-height:24px; margin-top:4px }
+    /* ===== Flashcard ===== */
+    .flashcard-box{ width:min(560px,90vw); height:232px; margin:8px auto; perspective:1000px }
+    .flashcard{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .45s }
+    .flashcard.is-flipped{ transform:rotateY(180deg) }
+    .face{ position:absolute; inset:0; display:grid; place-items:center; backface-visibility:hidden; border-radius:10px; border:1px solid var(--border); }
+    .front{ background:#ffffff; color:#0b1220; font-weight:800; font-size:2rem }
+    .back{ background:#f9fafb; color:#0b1220; font-weight:600; font-size:1.5rem; transform:rotateY(180deg) }
+    .counter{ text-align:center; color:var(--muted); font-weight:700; margin-top:4px }
+    .hint{ text-align:center; color:#0369a1; font-weight:700; min-height:24px; margin-top:4px }
 
-    /* ===== Options (Listen) ===== */
-    /* 굵기 조정 (800 -> 700) */
-    .opt{ display:flex; align-items:center; justify-content:center; padding:10px 12px; border:1px solid var(--border);
-      background:#fff; border-radius:10px; font-weight:700 }
-    .opt.correct{ border-color:#16a34a; background:#f0fdf4; color:#166534 }
-    .opt.wrong{ border-color:#ef4444; background:#fef2f2; color:#991b1b }
+    /* ===== Options (Listen) ===== */
+    .opt{ display:flex; align-items:center; justify-content:center; padding:10px 12px; border:1px solid var(--border);
+      background:#fff; border-radius:10px; font-weight:700 }
+    .opt.correct{ border-color:#16a34a; background:#f0fdf4; color:#166534 }
+    .opt.wrong{ border-color:#ef4444; background:#fef2f2; color:#991b1b }
 
-    /* ===== Spelling ===== */
-    /* 굵기 유지: 입력 슬롯의 텍스트는 강조 */
-    .slot{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:46px; margin:0 2px; border-bottom:3px solid var(--accent); font-size:1.5rem; font-weight:800 }
-    /* 굵기 조정 (800 -> 700) */
-    .key{ width:40px; height:40px; border-radius:8px; border:1px solid var(--border); background:#fff; font-weight:700; margin:4px }
+    /* ===== Spelling ===== */
+    .slot{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:46px; margin:0 2px; border-bottom:3px solid var(--accent); font-size:1.5rem; font-weight:800 }
+    .key{ width:40px; height:40px; border-radius:8px; border:1px solid var(--border); background:#fff; font-weight:700; margin:4px }
 
-    /* ===== Match ===== */
-    .grid-cards{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px }
-    /* 굵기 조정 (800 -> 700) */
-    .mcard{ background:#fff; border:1px solid var(--border); border-radius:10px; height:82px; display:grid; place-items:center; font-weight:700; font-size:1.02rem; box-shadow:var(--shadow); cursor:pointer }
-    .mcard.matched{ border-color:#16a34a; background:#f0fdf4; color:#166534; cursor:default }
-    .mcard.wrong{ border-color:#ef4444; background:#fef2f2; color:#991b1b }
+    /* ===== Match ===== */
+    .grid-cards{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px }
+    .mcard{ background:#fff; border:1px solid var(--border); border-radius:10px; height:82px; display:grid; place-items:center; font-weight:700; font-size:1.02rem; box-shadow:var(--shadow); cursor:pointer }
+    .mcard.matched{ border-color:#16a34a; background:#f0fdf4; color:#166534; cursor:default }
+    .mcard.wrong{ border-color:#ef4444; background:#fef2f2; color:#991b1b }
 
-    /* ===== Modal ===== */
-    .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(255,255,255,.92); z-index:50 }
-    .modal .box{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; width:min(440px,92vw); text-align:center; box-shadow:var(--shadow) }
-    /* 굵기 조정 (800 -> 700) */
-    .modal .box h2{ margin:0 0 6px; font-size:1.3rem; letter-spacing:-.2px; font-weight:700 }
-    .modal .box p{ margin:0; color:var(--muted); font-weight:700 }
+    /* ===== Modal ===== */
+    .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(255,255,255,.92); z-index:50 }
+    .modal .box{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; width:min(440px,92vw); text-align:center; box-shadow:var(--shadow) }
+    .modal .box h2{ margin:0 0 6px; font-size:1.3rem; letter-spacing:-.2px; font-weight:700 }
+    .modal .box p{ margin:0; color:var(--muted); font-weight:700 }
 
-    .hidden{ display:none }
-  </style>
+    .hidden{ display:none }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="appbar">
-      <div class="title">단어 학습</div>
-      <div class="spacer"></div>
-      <div class="chip">단어 <b id="chipCount">0</b>개</div>
-      <div class="chip">모드 <b id="chipMode">—</b></div>
-    </header>
+  <div class="wrap">
+    <header class="appbar">
+      <div class="title">단어 학습</div>
+      <div class="spacer"></div>
+      <div class="chip">단어 <b id="chipCount">0</b>개</div>
+      <div class="chip">모드 <b id="chipMode">—</b></div>
+    </header>
 
-    <div class="layout" style="margin-top:12px">
-      <aside class="grid">
-        <section class="panel">
-          <h3>빠른 시작</h3>
-          <div class="row">
-            <input id="fileInput" type="file" accept=".json,application/json" class="hidden"/>
-            <button id="loadLocalBtn" class="btn btn-primary" onclick="$('fileInput').click()">
-                로컬 JSON 불러오기
-            </button>
-            
-                        <button class="btn" onclick="loadFileUrl(BASE_URL + 'unit1.json')">Unit 1 불러오기</button>
-            <button class="btn" onclick="loadFileUrl(BASE_URL + 'unit2.json')">Unit 2 불러오기</button>
-            
-            <button id="clearBtn" class="btn">초기화</button>
-          </div>
-        </section>
-      </aside>
+    <div class="layout" style="margin-top:12px">
+      <aside class="grid">
+        <section class="panel">
+          <h3>빠른 시작</h3>
+          <div class="row">
+            <input id="fileInput" type="file" accept=".json,application/json" class="hidden"/>
+            <button id="loadLocalBtn" class="btn btn-primary" onclick="$('fileInput').click()">
+                로컬 JSON 불러오기
+            </button>
+            
+            <button class="btn" onclick="loadJsonFromRepo('words_unit01.json')">Unit 1</button>
+           
+            <button id="clearBtn" class="btn">초기화</button>
+          </div>
+        </section>
+      </aside>
 
-      <main class="grid">
-        <section class="panel">
-          <h3>모드</h3>
-          <div class="row">
-            <button class="btn" onclick="setMode('study')">학습</button>
-            <button class="btn" onclick="setMode('quiz')">퀴즈</button>
-            <button class="btn" onclick="setMode('listen')">듣고 찾기</button>
-            <button class="btn" onclick="setMode('spelling')">Spelling</button>
-            <button class="btn" onclick="setMode('match')">Game</button>
-          </div>
-          <div id="modeTitle" class="hint hidden" style="margin-top:6px"></div>
-        </section>
+      <main class="grid">
+        <section class="panel">
+          <h3>모드</h3>
+          <div class="row">
+            <button class="btn" onclick="setMode('study')">학습</button>
+            <button class="btn" onclick="setMode('quiz')">퀴즈</button>
+            <button class="btn" onclick="setMode('listen')">듣고 찾기</button>
+            <button class="btn" onclick="setMode('spelling')">Spelling</button>
+            <button class="btn" onclick="setMode('match')">Game</button>
+          </div>
+          <div id="modeTitle" class="hint hidden" style="margin-top:6px"></div>
+        </section>
 
-        <section id="flashcardUi" class="panel hidden">
-          <div class="flashcard-box">
-            <div id="flashcard" class="flashcard">
-              <div id="cardFront" class="face front"></div>
-              <div id="cardBack" class="face back"></div>
-            </div>
-          </div>
-          <div class="row" style="justify-content:center">
-            <button id="prevBtn" class="btn" onclick="prevCard()">이전</button>
-            <div id="cardCounter" class="counter"></div>
-            <button id="nextBtn" class="btn" onclick="nextCard()">다음</button>
-          </div>
-          <div id="countdownDisplay" class="hint"></div>
-        </section>
+        <section id="flashcardUi" class="panel hidden">
+          <div class="flashcard-box">
+            <div id="flashcard" class="flashcard">
+              <div id="cardFront" class="face front"></div>
+              <div id="cardBack" class="face back"></div>
+            </div>
+          </div>
+          <div class="row" style="justify-content:center">
+            <button id="prevBtn" class="btn" onclick="prevCard()">이전</button>
+            <div id="cardCounter" class="counter"></div>
+            <button id="nextBtn" class="btn" onclick="nextCard()">다음</button>
+          </div>
+          <div id="countdownDisplay" class="hint"></div>
+        </section>
 
-        <section id="listenUi" class="panel hidden">
-          <div class="row" style="justify-content:center">
-            <button id="listenAudioBtn" class="btn" onclick="playCurrentListenWord()">단어 듣기</button>
-            <div id="listenCounter" class="counter"></div>
-          </div>
-          <div id="listenOptions" class="grid" style="grid-template-columns:1fr; gap:8px; margin-top:8px"></div>
-          <div id="listenMessage" class="hint"></div>
-        </section>
+        <section id="listenUi" class="panel hidden">
+          <div class="row" style="justify-content:center">
+            <button id="listenAudioBtn" class="btn" onclick="playCurrentListenWord()">단어 듣기</button>
+            <div id="listenCounter" class="counter"></div>
+          </div>
+          <div id="listenOptions" class="grid" style="grid-template-columns:1fr; gap:8px; margin-top:8px"></div>
+          <div id="listenMessage" class="hint"></div>
+        </section>
 
-        <section id="spellingUi" class="panel hidden">
-          <div class="row" style="justify-content:center">
-            <button id="spellingAudioBtn" class="btn" onclick="playCurrentSpellingWord()">단어 듣기</button>
-            <div id="spellingCounter" class="counter"></div>
-          </div>
-          <div id="spellingHint" class="hint"></div>
-          <div id="spellingSlots" class="text-center" style="margin:8px 0"></div>
-          <div id="spellingKeyboard" class="row" style="justify-content:center"></div>
-          <div id="spellingMessage" class="hint"></div>
-        </section>
+        <section id="spellingUi" class="panel hidden">
+          <div class="row" style="justify-content:center">
+            <button id="spellingAudioBtn" class="btn" onclick="playCurrentSpellingWord()">단어 듣기</button>
+            <div id="spellingCounter" class="counter"></div>
+          </div>
+          <div id="spellingHint" class="hint"></div>
+          <div id="spellingSlots" class="text-center" style="margin:8px 0"></div>
+          <div id="spellingKeyboard" class="row" style="justify-content:center"></div>
+          <div id="spellingMessage" class="hint"></div>
+        </section>
 
-        <section id="matchUi" class="panel hidden">
-          <div id="matchGrid" class="grid-cards"></div>
-          <div id="matchMessage" class="hint"></div>
-        </section>
-      </main>
-    </div>
+        <section id="matchUi" class="panel hidden">
+          <div id="matchGrid" class="grid-cards"></div>
+          <div id="matchMessage" class="hint"></div>
+        </section>
+      </main>
+    </div>
 
-    <div id="successModal" class="modal">
-      <div class="box">
-        <h2 id="modalTitle"></h2>
-        <p id="modalSub"></p>
-        <div class="row" style="justify-content:center; margin-top:10px">
-          <button id="againAllBtn" class="btn btn-primary">전체 다시</button>
-          <button id="againWrongBtn" class="btn" style="display:none">오답만</button>
-          <button id="closeBtn" class="btn">닫기</button>
-        </div>
-                  </div>
-    </div>
-  </div>
+    <div id="successModal" class="modal">
+      <div class="box">
+        <h2 id="modalTitle"></h2>
+        <p id="modalSub"></p>
+        <div class="row" style="justify-content:center; margin-top:10px">
+          <button id="againAllBtn" class="btn btn-primary">전체 다시</button>
+          <button id="againWrongBtn" class="btn" style="display:none">오답만</button>
+          <button id="closeBtn" class="btn">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
 /* ===================== State ===================== */
@@ -199,7 +189,14 @@ let listenSet=[], listenIdx=0, listenAnswer=''; let listenWrong=new Set();
 let spellSet=[], spellIdx=0, target='', guess=''; let spellingWrong=new Set();
 let matchFlipped=[], matchFound=0, matchLock=false;
 
-/* ===================== Audio: WebAudio tones (no external files) ===================== */
+/* ⚠️ [중요] GitHub Raw Content URL을 여기에 설정하세요!
+ * 형식: https://raw.githubusercontent.com/[사용자명]/[저장소명]/main/
+ * 예시: const BASE_URL = 'https://raw.githubusercontent.com/octocat/Spoon-Knife/main/'; 
+ */
+const BASE_URL = 'https://raw.githubusercontent.com/MyBestTutor/stella/main/'; 
+
+
+/* ===================== Audio / TTS / Helpers ===================== */
 let audioCtx=null; let audioReady=false;
 function initAudio(){ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); audioReady=true; }catch(e){ audioReady=false; } }
 ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{ if(!audioReady) initAudio(); },{once:true,passive:true}));
@@ -207,11 +204,7 @@ function tone(freq=880, dur=0.12, type='sine', vol=0.25){ if(!audioReady) return
 function sfxFlip(){ tone(720, .10, 'sine', .22) }
 function sfxCorrect(){ tone(880, .14, 'sine', .22); setTimeout(()=>tone(1320,.16,'sine',.2), 40) }
 function sfxWrong(){ tone(220, .12, 'triangle', .22); setTimeout(()=>tone(180,.12,'triangle',.18), 80) }
-
-/* ===================== TTS: always ON ===================== */
 function speak(text){ try{ if('speechSynthesis' in window){ const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; speechSynthesis.speak(u);} }catch(e){} }
-
-/* ===================== Helpers ===================== */
 const $=id=>document.getElementById(id);
 function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]];} return b; }
 function sample(a,n){ return shuffle(a).slice(0,n); }
@@ -220,187 +213,125 @@ function updateChips(){ $('chipCount').textContent=data.length; $('chipMode').te
 
 /* ===================== 공통 데이터 처리 함수 ===================== */
 function processAndStart(jsonData) {
-    const ok = Array.isArray(jsonData)
-        ? jsonData.filter(d => d && typeof d.front === 'string' && typeof d.back === 'string')
-        : [];
-        
-    if (!ok.length) {
-        throw new Error('배열/형식 확인 필요 또는 데이터 없음');
-    }
-    
-    data = ok;
-    idx = 0;
-    listenWrong.clear();
-    spellingWrong.clear();
-    setMode('study'); // 로드 성공 후 학습 모드로 전환
+    const ok = Array.isArray(jsonData)
+        ? jsonData.filter(d => d && typeof d.front === 'string' && typeof d.back === 'string')
+        : [];
+        
+    if (!ok.length) {
+        throw new Error('배열/형식 확인 필요 또는 데이터 없음');
+    }
+    
+    data = ok;
+    idx = 0;
+    listenWrong.clear();
+    spellingWrong.clear();
+    setMode('study'); // 로드 성공 후 학습 모드로 전환
 }
 
 
-/* ===================== Load JSON: 로컬 파일 (기존 로직) ===================== */
-$('fileInput').onchange = async (ev) => { 
-    const f = ev.target.files?.[0]; 
-    if(!f) return; 
+/* ===================== Load JSON: 로컬 파일 (onchange 이벤트 리스너 명시) ===================== */
+// 로컬 파일 불러오기 버튼 클릭은 HTML의 onclick="$('fileInput').click()"로 처리됨.
+// 파일 선택 후 이벤트 처리는 아래에서 명시적으로 연결
+$('fileInput').onchange = async (ev) => { 
+    const f = ev.target.files?.[0]; 
+    if(!f) return; 
 
-    $('loadLocalBtn').textContent = '로딩 중...';
-    $('loadLocalBtn').disabled = true;
+    $('loadLocalBtn').textContent = '로딩 중...';
+    $('loadLocalBtn').disabled = true;
 
-    try{ 
-        const text = await f.text(); 
-        const js = JSON.parse(text); 
-        processAndStart(js); // 공통 처리 함수 호출
+    try{ 
+        const text = await f.text(); 
+        const js = JSON.parse(text); 
+        processAndStart(js); 
 
-        alert(`로컬 파일에서 단어 ${data.length}개를 성공적으로 불러왔습니다.`);
+        alert(`로컬 파일에서 단어 ${data.length}개를 성공적으로 불러왔습니다.`);
 
-    }catch(e){ 
-        alert('JSON 오류: '+e.message); 
-    } finally { 
-        ev.target.value = ''; 
-        $('loadLocalBtn').textContent = '로컬 JSON 불러오기';
-        $('loadLocalBtn').disabled = false;
-        updateChips(); 
-    } 
+    }catch(e){ 
+        alert('JSON 로드 오류: '+e.message); 
+    } finally { 
+        ev.target.value = ''; // 같은 파일을 다시 로드할 수 있도록 값 초기화
+        $('loadLocalBtn').textContent = '로컬 JSON 불러오기';
+        $('loadLocalBtn').disabled = false;
+        updateChips(); 
+    } 
 };
 
 
-/* ===================== Load JSON: 원격 저장소 파일 (Unit 버튼) - BASE_URL 구조 복구 ===================== */
-
-// ⭐️ 사용자 요청 복구: BASE_URL 변수를 정의합니다.
-// HTML 파일과 같은 폴더에 unitN.json 파일이 있다고 가정하고 './'를 사용합니다.
-const BASE_URL = 'https://raw.githubusercontent.com/MyBestTutor/stella/main/';
-
-
-function loadFileUrl(url) {
+/* ===================== Load JSON: 원격 저장소 파일 (CORS 해결) ===================== */
+async function loadJsonFromRepo(jsonPath) {
     initAudio(); 
-    
-    // 로딩 중임을 표시하고 버튼 비활성화
-    $('modeTitle').textContent='파일을 불러오는 중...';
     document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = true);
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                // HTTP 오류가 발생했을 경우
-                throw new Error(`파일 로드 실패: HTTP ${response.status} (경로: ${url}).`);
-            }
-            return response.json();
-        })
-        .then(js => {
-            // 공통 데이터 처리 함수 호출
-            processAndStart(js); 
-            $('modeTitle').textContent=`단어 ${data.length}개 로드됨 — 모드 선택`;
-            alert(`파일 (${url})에서 단어 ${data.length}개를 성공적으로 불러왔습니다.`);
-        })
-        .catch(e => {
-            alert('JSON 불러오기 오류: ' + e.message + "\n\n⚠️ Unit 버튼은 웹 서버(Live Server 등)로 실행해야 동작합니다. 파일이 같은 폴더에 있는지 확인해주세요.");
-            $('modeTitle').textContent='파일 로드 실패. 경로를 확인해 주세요.';
-        })
-        .finally(() => {
-            // 버튼 상태 복구
-            document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = false);
-            updateChips();
-        });
+    const fullUrl = BASE_URL + jsonPath; 
+    
+    try {
+        const response = await fetch(fullUrl); 
+        
+        if (!response.ok) {
+            // BASE_URL 문제 경고를 명확히 표시
+            throw new Error(`파일 로드 실패. HTTP 상태: ${response.status}. BASE_URL 확인 필요.`);
+        }
+
+        const js = await response.json();
+        processAndStart(js); 
+        
+        alert(`저장소 파일 (${jsonPath})에서 단어 ${data.length}개를 성공적으로 불러왔습니다.`);
+
+    } catch (e) {
+        alert(`JSON 로드 오류: ${e.message}`);
+        
+    } finally {
+        document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = false);
+        updateChips();
+    }
 }
 
 
-/* ===================== 초기화 버튼 로직 유지 ===================== */
-$('clearBtn').onclick = () => { data=[]; updateChips(); hideAll(); 
-    $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.';
-    $('modeTitle').classList.remove('hidden');
-};
+/* ===================== 초기화 버튼 로직 ===================== */
+$('clearBtn').onclick = () => { data=[]; updateChips(); hideAll(); };
 
-/* ===================== Modes ===================== */
+
+/* ===================== Modes / Game Logic (전체 게임 로직) ===================== */
 let currentModeLabel='—';
 function hideAll(){ ['flashcardUi','listenUi','spellingUi','matchUi'].forEach(id=>$(id).classList.add('hidden')); try{ speechSynthesis.cancel(); }catch(e){} clearTimeout(flipTimer); clearInterval(countdownInterval); }
-function setMode(m){ 
-    if(!ensure()) return; 
-    initAudio(); 
-    hideAll(); 
-    
-    // 모드 설명 간소화 유지
-    const modeName = m==='study'?'학습':m==='quiz'?'퀴즈':m==='listen'?'듣고 찾기':m==='spelling'?'Spelling':'Game';
-    $('modeTitle').textContent = `${modeName} 모드 시작.`; 
-    $('modeTitle').classList.remove('hidden'); 
-    
-    if(m==='study'){ 
-        currentModeLabel='학습'; 
-        isQuiz=false; 
-        $('flashcardUi').classList.remove('hidden'); 
-        idx=0; 
-        loadCard(false); 
-    } else if(m==='quiz'){ 
-        currentModeLabel='퀴즈'; 
-        isQuiz=true; 
-        $('flashcardUi').classList.remove('hidden'); 
-        idx=0; 
-        loadCard(true); 
-    } else if(m==='listen'){ 
-        currentModeLabel='듣고 찾기'; 
-        $('listenUi').classList.remove('hidden'); 
-        startListen(); 
-    } else if(m==='spelling'){ 
-        currentModeLabel='Spelling'; 
-        $('spellingUi').classList.remove('hidden'); 
-        startSpelling(); 
-    } else if(m==='match'){ 
-        currentModeLabel='Game'; 
-        $('matchUi').classList.remove('hidden'); 
-        startMatch(); 
-    } 
-    updateChips(); 
-}
+function setMode(m){ if(!ensure()) return; initAudio(); hideAll(); if(m==='study'){ currentModeLabel='학습'; isQuiz=false; $('flashcardUi').classList.remove('hidden'); idx=0; loadCard(false); } else if(m==='quiz'){ currentModeLabel='퀴즈'; isQuiz=true; $('flashcardUi').classList.remove('hidden'); idx=0; loadCard(true); } else if(m==='listen'){ currentModeLabel='듣고 찾기'; $('listenUi').classList.remove('hidden'); startListen(); } else if(m==='spelling'){ currentModeLabel='Spelling'; $('spellingUi').classList.remove('hidden'); startSpelling(); } else if(m==='match'){ currentModeLabel='Game'; $('matchUi').classList.remove('hidden'); startMatch(); } updateChips(); }
 
-/* ===================== Flashcard / Quiz ===================== */
+/* Flashcard / Quiz */
 const flashcard=$('flashcard'), front=$('cardFront'), back=$('cardBack');
+function loadCard(quiz){ const c=data[idx]; flashcard.classList.remove('is-flipped'); front.textContent=c.back; back.textContent=c.front; $('cardCounter').textContent=`${idx+1} / ${data.length}`; $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
+$('modeTitle').classList.add('hidden'); 
+if(quiz){ $('prevBtn').disabled=true; $('nextBtn').disabled=true; let cnt=QUIZ_DELAY/1000; $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; clearInterval(countdownInterval); countdownInterval=setInterval(()=>{ cnt--; if(cnt>0) $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; },1000); clearTimeout(flipTimer); flipTimer=setTimeout(()=>{ flashcard.classList.add('is-flipped'); sfxFlip(); setTimeout(()=>advance('next'), 1600); }, QUIZ_DELAY); flashcard.onclick=null; } else { $('prevBtn').disabled=(idx===0); $('nextBtn').disabled=(idx===data.length-1); flashcard.onclick=()=>{ flashcard.classList.toggle('is-flipped'); sfxFlip(); speak(c.back); }; } }
+function advance(dir){ if(isQuiz){ clearTimeout(flipTimer); clearInterval(countdownInterval); } if(dir==='next'){ if(idx<data.length-1) idx++; } else if(dir==='prev'){ if(idx>0) idx--; } loadCard(isQuiz); }
+function nextCard(){ advance('next'); }
+function prevCard(){ advance('prev'); }
 
-// 퀴즈/학습 카드를 로드하고 플립 로직을 설정합니다.
-function loadCard(quiz){ 
-    const c=data[idx]; 
-    flashcard.classList.remove('is-flipped'); 
-    front.textContent=c.back; // 영어 단어 (뒷면)
-    back.textContent=c.front; // 한국어 의미 (앞면)
-    $('cardCounter').textContent=`${idx+1} / ${data.length}`; 
-    $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
-    $('modeTitle').classList.add('hidden'); // 모드 타이틀은 숨김 유지
+/* Listen */
+function startListen(){ listenSet=shuffle(data); listenIdx=0; listenWrong.clear(); nextListen(); $('modeTitle').textContent='뜻을 듣고 단어를 찾아보세요.'; $('modeTitle').classList.remove('hidden'); }
+function nextListen(){ if(listenIdx>=listenSet.length){ showEnd('듣고 찾기 완료', summary(listenSet.length, listenWrong.size), ()=>startListen(), ()=>startListenWrong()); return; } $('listenCounter').textContent=`${listenIdx+1} / ${listenSet.length}`; const c=listenSet[listenIdx]; speak(c.back); listenAnswer=c.front; const wrongs=sample(data.filter(d=>d.front!==c.front), 3).map(d=>d.front); const options=shuffle([listenAnswer,...wrongs]); $('listenOptions').innerHTML=options.map(opt=>`<button class="opt" onclick="checkListen('${opt}')">${opt}</button>`).join(''); $('listenMessage').textContent='단어 듣기 버튼을 눌러보세요.'; }
+function checkListen(selected){ const isCorrect=selected===listenAnswer; $('listenMessage').textContent=isCorrect? '정답!':'오답.'; document.querySelectorAll('.opt').forEach(btn=>{ btn.disabled=true; if(btn.textContent===listenAnswer) btn.classList.add('correct'); else if(btn.textContent===selected) btn.classList.add('wrong'); }); if(!isCorrect) listenWrong.add(listenSet[listenIdx]); if(isCorrect) sfxCorrect(); else sfxWrong(); setTimeout(()=>{ listenIdx++; nextListen(); },1000); }
+function playCurrentListenWord(){ speak(listenSet[listenIdx].back); }
+function startListenWrong(){ listenSet=[...listenWrong]; listenIdx=0; listenWrong.clear(); nextListen(); }
 
-    if(quiz){ 
-        // 퀴즈 모드: 자동 플립 및 이동
-        $('prevBtn').disabled=true; 
-        $('nextBtn').disabled=true; 
-        
-        let cnt=QUIZ_DELAY/1000; 
-        // 기존 인터벌이 있다면 제거
-        if(countdownInterval) clearInterval(countdownInterval);
-        
-        $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; 
-        countdownInterval=setInterval(()=>{ 
-            cnt--; 
-            if(cnt>0) $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; 
-        },1000); 
-        
-        flipTimer=setTimeout(()=>{ 
-            flashcard.classList.add('is-flipped'); 
-            sfxFlip(); 
-            clearInterval(countdownInterval); // 플립 후 카운트다운 정지
-            setTimeout(()=>advance('next'), 1600); // 1.6초 후 다음 카드
-        }, QUIZ_DELAY); 
-        flashcard.onclick=null; 
-    } else { 
-        // 학습 모드: 수동 플립
-        $('prevBtn').disabled=false; 
-        $('nextBtn').disabled=false; 
-        // 기존 타이머/인터벌이 있다면 제거
-        if(flipTimer) clearTimeout(flipTimer);
-        if(countdownInterval) clearInterval(countdownInterval);
-        
-        flashcard.onclick=()=>{ 
-            flashcard.classList.toggle('is-flipped'); 
-            sfxFlip(); 
-            // 뒤집었을 때만 TTS 재생
-            if (flashcard.classList.contains('is-flipped')) {
-                speak(c.back); // 뒤집혔을 때 영어 단어 읽기
-            }
-        }; 
-    } 
-}
+/* Spelling */
+function startSpelling(){ spellSet=shuffle(data); spellIdx=0; spellingWrong.clear(); nextSpelling(); $('modeTitle').textContent='뜻을 보고 철자를 맞춰보세요.'; $('modeTitle').classList.remove('hidden'); }
+function nextSpelling(){ if(spellIdx>=spellSet.length){ showEnd('Spelling 완료', summary(spellSet.length, spellingWrong.size), ()=>startSpelling(), ()=>startSpellingWrong()); return; } const c=spellSet[spellIdx]; target=c.front.toUpperCase(); guess=''; $('spellingCounter').textContent=`${spellIdx+1} / ${spellSet.length}`; $('spellingHint').textContent=c.back; $('spellingMessage').textContent=''; renderSpellingUI(); }
+function renderSpellingUI(){ $('spellingSlots').innerHTML=target.split('').map((char,i)=>`<div class="slot" id="slot${i}">${guess[i]||''}</div>`).join(''); const keys=shuffle([...new Set(target.split(''))]); $('spellingKeyboard').innerHTML=keys.map(key=>`<button class="key" onclick="typeSpelling('${key}')">${key}</button>`).join(''); }
+function typeSpelling(key){ if(guess.length<target.length){ guess+=key; $('slot'+(guess.length-1)).textContent=key; } }
+function checkSpelling(){ if(guess===target){ $('spellingMessage').textContent='정답!'; sfxCorrect(); setTimeout(()=>{ spellIdx++; nextSpelling(); },800); } else { $('spellingMessage').textContent=`오답. 정답: ${target}`; sfxWrong(); spellingWrong.add(spellSet[spellIdx]); setTimeout(()=>{ spellIdx++; nextSpelling(); },1500); } }
+function playCurrentSpellingWord(){ speak(spellSet[spellIdx].front); }
+function startSpellingWrong(){ spellSet=[...spellingWrong]; spellIdx=0; spellingWrong.clear(); nextSpelling(); }
+document.addEventListener('keydown', (e)=>{ if($('spellingUi').classList.contains('hidden')) return; const key=e.key.toUpperCase(); if(key.length===1 && key>='A' && key<='Z') typeSpelling(key); else if(key==='ENTER') checkSpelling(); else if(key==='BACKSPACE' || key==='DELETE') guess=guess.slice(0,-1); $('spellingSlots').innerHTML=target.split('').map((char,i)=>`<div class="slot" id="slot${i}">${guess[i]||''}</div>`).join(''); });
 
-// 다음/이전 카드로 이동하는 로
+
+/* Match */
+function startMatch(){ matchFound=0; matchFlipped=[]; matchLock=false; $('matchMessage').textContent='짝을 맞추세요.'; const set=sample(data, 6); let cards=[...set.map(c=>({text:c.front,pair:c.back,isFront:true})), ...set.map(c=>({text:c.back,pair:c.front,isFront:false}))]; cards=shuffle(cards); $('matchGrid').innerHTML=cards.map((c,i)=>`<div class="mcard" id="matchCard${i}" data-text="${c.text}" data-pair="${c.pair}" onclick="flipMatch(${i})">${c.isFront?'?':'?'}</div>`).join(''); }
+function flipMatch(index){ if(matchLock) return; const card=$('matchCard'+index); if(card.classList.contains('open')||card.classList.contains('matched')) return; card.classList.add('open'); card.textContent=card.getAttribute('data-text'); matchFlipped.push(card); if(matchFlipped.length===1){ $('matchMessage').textContent='다른 카드를 선택하세요'; return; } if(matchFlipped.length===2){ matchLock=true; const [a,b]=matchFlipped; if(a.getAttribute('data-pair')===b.getAttribute('data-text') && a.getAttribute('data-text')!==b.getAttribute('data-text')){ a.classList.add('matched'); b.classList.add('matched'); matchFound++; matchFlipped=[]; matchLock=false; $('matchMessage').textContent='정답'; sfxCorrect(); if(matchFound===6){ showEnd('매칭 완료','모든 짝을 맞췄어요', ()=>startMatch(), null); } } else { $('matchMessage').textContent='오답'; sfxWrong(); setTimeout(()=>{ a.classList.remove('open'); b.classList.remove('open'); a.textContent='?'; b.textContent='?'; matchFlipped=[]; matchLock=false; },800); } } }
+
+/* Modal */
+function showEnd(title, sub, againAll, againWrong){ $('modalTitle').textContent=title; $('modalSub').textContent=sub; $('successModal').style.display='flex'; $('againAllBtn').onclick=()=>{ closeModal(); againAll(); }; if(againWrong){ $('againWrongBtn').style.display=''; $('againWrongBtn').onclick=()=>{ closeModal(); againWrong(); }; } else { $('againWrongBtn').style.display='none'; } $('closeBtn').onclick=closeModal; }
+function closeModal(){ $('successModal').style.display='none'; }
+function summary(total, wrong){ return `총 ${total}문제 · 오답 ${wrong}개`; }
+
+</script>
+</body>
+</html>

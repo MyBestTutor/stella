@@ -116,8 +116,8 @@
                 로컬 JSON 불러오기
             </button>
             
-                        <button class="btn" onclick="loadJsonFromRepo('words_unit1.json')">Unit 1</button>
-            <button class="btn" onclick="loadJsonFromRepo('words_unit2.json')">Unit 2</button>
+                        <button class="btn" onclick="loadFileUrl(BASE_URL + 'unit1.json')">Unit 1 불러오기</button>
+            <button class="btn" onclick="loadFileUrl(BASE_URL + 'unit2.json')">Unit 2 불러오기</button>
             
             <button id="clearBtn" class="btn">초기화</button>
           </div>
@@ -188,7 +188,7 @@
           <button id="againWrongBtn" class="btn" style="display:none">오답만</button>
           <button id="closeBtn" class="btn">닫기</button>
         </div>
-      </div>
+                  </div>
     </div>
   </div>
 
@@ -262,39 +262,51 @@ $('fileInput').onchange = async (ev) => { 
 };
 
 
-/* ===================== Load JSON: 원격 저장소 파일 (Unit 버튼) ===================== */
-// BASE_URL은 별도로 정의하지 않고, 버튼에 명시된 상대 경로(예: words_unit1.json)를 사용합니다.
-async function loadJsonFromRepo(jsonPath) {
-    initAudio(); 
-    
-    // 모든 로드 관련 버튼 비활성화 (로딩 표시)
-    document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = true);
+/* ===================== Load JSON: 원격 저장소 파일 (Unit 버튼) - BASE_URL 구조 복구 ===================== */
 
-    try {
-        const response = await fetch(jsonPath);
+// ⭐️ 사용자 요청 복구: BASE_URL 변수를 정의합니다.
+// HTML 파일과 같은 폴더에 unitN.json 파일이 있다고 가정하고 './'를 사용합니다.
+const BASE_URL = 'https://raw.githubusercontent.com/MyBestTutor/stella/main/';
 
-        if (!response.ok) {
-            throw new Error(`파일 로드 실패: HTTP ${response.status} (경로: ${jsonPath})`);
-        }
 
-        const js = await response.json();
-        processAndStart(js); // 공통 처리 함수 호출
-        
-        alert(`파일 (${jsonPath})에서 단어 ${data.length}개를 성공적으로 불러왔습니다.`);
+function loadFileUrl(url) {
+    initAudio(); 
+    
+    // 로딩 중임을 표시하고 버튼 비활성화
+    $('modeTitle').textContent='파일을 불러오는 중...';
+    document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = true);
 
-    } catch (e) {
-        alert(`JSON 로드 오류: ${e.message}\n\n⚠️ 로컬 테스트 시 브라우저 보안 정책(CORS) 때문에 파일을 불러오지 못할 수 있습니다. 파일을 웹 서버(Live Server 등)에 올려서 테스트해 보세요.`);
-        
-    } finally {
-        // 모든 로드 관련 버튼 상태 복구
-        document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = false);
-        updateChips();
-    }
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                // HTTP 오류가 발생했을 경우
+                throw new Error(`파일 로드 실패: HTTP ${response.status} (경로: ${url}).`);
+            }
+            return response.json();
+        })
+        .then(js => {
+            // 공통 데이터 처리 함수 호출
+            processAndStart(js); 
+            $('modeTitle').textContent=`단어 ${data.length}개 로드됨 — 모드 선택`;
+            alert(`파일 (${url})에서 단어 ${data.length}개를 성공적으로 불러왔습니다.`);
+        })
+        .catch(e => {
+            alert('JSON 불러오기 오류: ' + e.message + "\n\n⚠️ Unit 버튼은 웹 서버(Live Server 등)로 실행해야 동작합니다. 파일이 같은 폴더에 있는지 확인해주세요.");
+            $('modeTitle').textContent='파일 로드 실패. 경로를 확인해 주세요.';
+        })
+        .finally(() => {
+            // 버튼 상태 복구
+            document.querySelectorAll('.panel .btn').forEach(btn => btn.disabled = false);
+            updateChips();
+        });
 }
 
 
 /* ===================== 초기화 버튼 로직 유지 ===================== */
-$('clearBtn').onclick = () => { data=[]; updateChips(); hideAll(); };
+$('clearBtn').onclick = () => { data=[]; updateChips(); hideAll(); 
+    $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.';
+    $('modeTitle').classList.remove('hidden');
+};
 
 /* ===================== Modes ===================== */
 let currentModeLabel='—';
@@ -391,52 +403,4 @@ function loadCard(quiz){
     } 
 }
 
-// 다음/이전 카드로 이동하는 로직을 완성합니다.
-function advance(dir){ 
-    // 퀴즈 모드의 경우 다음 카드로 넘어갈 때 기존 타이머 제거
-    if (isQuiz) {
-        if(flipTimer) clearTimeout(flipTimer);
-        if(countdownInterval) clearInterval(countdownInterval);
-    }
-    
-    idx = dir==='next' ? (idx+1)%data.length : (idx-1+data.length)%data.length; 
-    loadCard(isQuiz); 
-}
-
-function nextCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('next'),60); } }
-function prevCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('prev'),60); } }
-
-/* ===================== Listen ===================== */
-function startListen(custom){ const base=Array.isArray(custom)&&custom.length?custom:data; listenSet=shuffle(base); listenIdx=0; listenWrong.clear(); loadListenQ(); }
-function loadListenQ(){ if(listenIdx>=listenSet.length){ const wrong=Array.from(listenWrong); showEnd('듣고 찾기 완료', summary(listenSet.length, wrong.length), ()=>startListen(), wrong.length? ()=>startListen(wrong):null ); return; } const item=listenSet[listenIdx]; listenAnswer=item.front; $('listenCounter').textContent=`${listenIdx+1} / ${listenSet.length}`; const opts=shuffle([item.front, ...sample(data.filter(x=>x.front!==item.front).map(x=>x.front),3)]); const box=$('listenOptions'); box.innerHTML=''; opts.forEach(o=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o; b.onclick=()=>{ [...box.children].forEach(x=>x.disabled=true); if(o===listenAnswer){ b.classList.add('correct'); sfxCorrect(); } else { listenWrong.add(item); b.classList.add('wrong'); [...box.children].forEach(x=>{ if(x.textContent===listenAnswer) x.classList.add('correct'); }); sfxWrong(); } setTimeout(()=>{ listenIdx++; $('listenMessage').textContent=''; loadListenQ(); },1100); }; box.appendChild(b); }); speak(item.back); }
-function playCurrentListenWord(){ if(listenSet.length) speak(listenSet[listenIdx].back); }
-
-/* ===================== Spelling ===================== */
-function startSpelling(custom){ const base=Array.isArray(custom)&&custom.length?custom:data.filter(x=>x.back.length>=3); spellSet=shuffle(base); spellIdx=0; spellingWrong.clear(); loadSpellQ(); }
-function loadSpellQ(){ if(spellIdx>=spellSet.length){ const wrong=Array.from(spellingWrong); showEnd('스펠링 맞추기 완료', summary(spellSet.length, wrong.length), ()=>startSpelling(), wrong.length? ()=>startSpelling(wrong):null ); return; } const item=spellSet[spellIdx]; target=item.back.toUpperCase(); guess=''; $('spellingHint').textContent=`힌트: "${item.front}"`; renderSlots(); renderKeys(item); $('spellingCounter').textContent=`${spellIdx+1} / ${spellSet.length}`; speak(item.back); }
-function countMap(str){ const m={}; for(const ch of str){ m[ch]=(m[ch]||0)+1; } return m; }
-function renderSlots(){ const cont=$('spellingSlots'); cont.innerHTML=''; for(let i=0;i<target.length;i++){ const s=document.createElement('span'); s.className='slot'; s.textContent=guess[i]||''; cont.appendChild(s); } }
-function renderKeys(current){ const cont=$('spellingKeyboard'); cont.innerHTML=''; const t=countMap(target), u=countMap(guess); const remain=[]; Object.keys(t).forEach(ch=>{ const r=Math.max(0, t[ch]-(u[ch]||0)); for(let i=0;i<r;i++) remain.push(ch); }); const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''); const dpool=alpha.filter(ch=>!t[ch]); const distract=sample(dpool, Math.min(3,dpool.length)); const pool=shuffle(remain.concat(distract)); pool.forEach(ch=>{ const b=document.createElement('button'); b.className='key'; b.textContent=ch; b.onclick=()=>{ if(guess.length>=target.length) return; guess+=ch; renderSlots(); renderKeys(current); if(guess.length===target.length){ const ok=(guess===target); $('spellingMessage').textContent= ok? '정답' : '오답'; if(ok){ sfxCorrect(); } else { spellingWrong.add(current); sfxWrong(); } setTimeout(()=>{ if(ok) spellIdx++; $('spellingMessage').textContent=''; loadSpellQ(); },900); } }; cont.appendChild(b); }); const back=document.createElement('button'); back.className='key'; back.style.background='#f3f4f6'; back.textContent='⌫'; back.onclick=()=>{ if(guess.length){ guess=guess.slice(0,-1); renderSlots(); renderKeys(current); } }; cont.appendChild(back); }
-function playCurrentSpellingWord(){ if(spellSet.length) speak(spellSet[spellIdx].back); }
-
-/* ===================== Match ===================== */
-function startMatch(){ const picked=sample(data, Math.min(6, data.length)); const cards=[]; picked.forEach(it=>{ cards.push({text:it.back, pair:it.front}); cards.push({text:it.front, pair:it.back}); }); renderMatchCards(shuffle(cards)); matchLock=true; matchFound=0; matchFlipped=[]; const all=[...document.querySelectorAll('.mcard')]; all.forEach(c=>{ c.textContent=c.getAttribute('data-text'); }); setTimeout(()=>{ all.forEach(c=>{ c.textContent='?'; }); matchLock=false; $('matchMessage').textContent='두 장씩 뒤집어 짝을 찾으세요'; },1800); }
-function renderMatchCards(cards){ const g=$('matchGrid'); g.innerHTML=''; cards.forEach(d=>{ const el=document.createElement('button'); el.type='button'; el.className='mcard'; el.textContent='?'; el.setAttribute('data-text', d.text); el.setAttribute('data-pair', d.pair); el.onclick=(ev)=>onMatchClick(el,ev); g.appendChild(el); }); }
-function onMatchClick(card,ev){ if(matchLock||card.classList.contains('matched')||card.classList.contains('open')) return; card.classList.add('open'); card.textContent=card.getAttribute('data-text'); matchFlipped.push(card); if(matchFlipped.length===1){ $('matchMessage').textContent='다른 카드를 선택하세요'; return; } if(matchFlipped.length===2){ matchLock=true; const [a,b]=matchFlipped; if(a.getAttribute('data-pair')===b.getAttribute('data-text')){ a.classList.add('matched'); b.classList.add('matched'); matchFound++; matchFlipped=[]; matchLock=false; $('matchMessage').textContent='정답'; sfxCorrect(); if(matchFound===6){ showEnd('매칭 완료','모든 짝을 맞췄어요', ()=>startMatch(), null); } } else { $('matchMessage').textContent='오답'; sfxWrong(); setTimeout(()=>{ a.classList.remove('open'); b.classList.remove('open'); a.textContent='?'; b.textContent='?'; matchFlipped=[]; matchLock=false; },800); } } }
-
-/* ===================== Modal ===================== */
-function showEnd(title, sub, againAll, againWrong){ $('modalTitle').textContent=title; $('modalSub').textContent=sub; $('successModal').style.display='flex'; $('againAllBtn').onclick=()=>{ closeModal(); againAll(); }; if(againWrong){ $('againWrongBtn').style.display=''; $('againWrongBtn').onclick=()=>{ closeModal(); againWrong(); }; } else { $('againWrongBtn').style.display='none'; } $('closeBtn').onclick=closeModal; }
-function closeModal(){ $('successModal').style.display='none'; }
-function summary(total, wrong){ return `총 ${total}문제 · 오답 ${wrong}문제`; }
-
-/* ===================== Init ===================== */
-(function(){ 
-    // 초기화 시 모드 설명 표시
-    $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.';
-    $('modeTitle').classList.remove('hidden');
-    updateChips(); 
-    initAudio(); 
-})();
-</script>
-</body>
-</html>
+// 다음/이전 카드로 이동하는 로

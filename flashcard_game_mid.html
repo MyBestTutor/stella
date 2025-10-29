@@ -215,7 +215,14 @@ function speak(text){ try{ if('speechSynthesis' in window){ const u=new SpeechSy
 const $=id=>document.getElementById(id);
 function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]];} return b; }
 function sample(a,n){ return shuffle(a).slice(0,n); }
-function ensure(){ if(!data.length){ alert('먼저 단어 JSON을 불러오세요.'); return false;} return true; }
+function ensure(){ 
+    if(!data.length){ 
+        // ⭐️ [모드 설명 반영] 단어가 없으면 안내 메시지 표시
+        $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.';
+        return false;
+    } 
+    return true; 
+}
 function updateChips(){ $('chipCount').textContent=data.length; $('chipMode').textContent=isQuiz? '퀴즈' : currentModeLabel; }
 
 /* ===================== Load JSON ===================== */
@@ -226,7 +233,7 @@ $('clearBtn').onclick=()=>{
     data=[]; 
     updateChips(); 
     hideAll(); 
-    // ⭐️ [모드 설명 제거 반영] 초기화 시에만 안내 문구 표시
+    // ⭐️ [모드 설명 반영] 초기화 시 안내 문구 표시
     $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.'; 
 };
 
@@ -237,7 +244,7 @@ function setMode(m){
     if(!ensure()) return; 
     initAudio(); 
     hideAll(); 
-    // ⭐️ [모드 설명 제거 반영] 모드 변경 시 설명 문구 초기화
+    // ⭐️ [모드 설명 제거 반영] 모드 변경 시 설명 문구 완전히 비우기
     $('modeTitle').textContent = ''; 
     
     if(m==='study'){ 
@@ -275,7 +282,7 @@ function advance(dir){ idx = dir==='next'? (idx+1)%data.length : (idx-1+data.len
 function nextCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('next'),60); } }
 function prevCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('prev'),60); } }
 
-// ⭐️ [최종 수정] loadCard 함수 전체를 이 코드로 교체합니다.
+// ⭐️ [최종 깜빡임 방지 로직 적용] loadCard 함수 전체를 이 코드로 교체합니다.
 // keepHidden 파라미터(기본값 false)를 추가하여, 자동 진행 시 카드 보이기 명령을 제어합니다.
 function loadCard(quiz, keepHidden = false){ 
     const c=data[idx]; 
@@ -294,7 +301,7 @@ function loadCard(quiz, keepHidden = false){
     $('cardCounter').textContent=`${idx+1} / ${data.length}`; 
     $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
     
-    // ⭐️ [모드 설명 제거 반영] 모드 설명 문구는 여기서도 빈 값으로 설정
+    // ⭐️ [모드 설명 제거 반영] loadCard 실행 시에도 비워둠
     $('modeTitle').textContent = ''; 
     
     clearTimeout(flipTimer); 
@@ -331,10 +338,10 @@ function loadCard(quiz, keepHidden = false){
                     // 3. loadCard를 호출하되, 'keepHidden=true'로 전달하여 내용 업데이트만 수행
                     loadCard(isQuiz, true); 
                     
-                    // 4. 내용 업데이트 후 50ms 뒤에 카드를 보이게 함 (확실한 분리)
+                    // 4. 내용 업데이트 후 0ms 딜레이로 '보이기' 명령을 렌더링 큐 맨 뒤로 보냄 (가장 확실한 방법)
                     setTimeout(() => {
                         flashcard.classList.remove('hide-content');
-                    }, 50); 
+                    }, 0); 
                     
                 }, 50); 
             }, 1600); 
@@ -356,7 +363,7 @@ function loadCard(quiz, keepHidden = false){
 
 /* ===================== Listen ===================== */
 function startListen(custom){ const base=Array.isArray(custom)&&custom.length?custom:data; listenSet=shuffle(base); listenIdx=0; listenWrong.clear(); loadListenQ(); }
-function loadListenQ(){ if(listenIdx>=listenSet.length){ const wrong=Array.from(listenWrong); showEnd('듣고 찾기 완료', summary(listenSet.length, wrong.length), ()=>startListen(), wrong.length? ()=>startListen(wrong):null ); return; } const item=listenSet[listenIdx]; listenAnswer=item.front; $('listenCounter').textContent=`${listenIdx+1} / ${listenSet.length}`; const opts=shuffle([item.front, ...sample(data.filter(x=>x.front!==item.front).map(x=>x.front),3)]); const box=$('listenOptions'); box.innerHTML=''; opts.forEach(o=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o; b.onclick=()=>{ [...box.children].forEach(x=>x.disabled=true); if(o===listenAnswer){ b.classList.add('correct'); sfxCorrect(); } else { listenWrong.add(item); b.classList.add('wrong'); [...box.children].forEach(x=>{ if(x.textContent===listenAnswer) x.classList.add('correct'); }); sfxWrong(); } setTimeout(()=>{ listenIdx++; $('listenMessage').textContent=''; loadListenQ(); },1100); }; box.appendChild(b); }); speak(item.back); }
+function loadListenQ(){ if(listenIdx>=listenSet.length){ const wrong=Array.from(listenWrong); showEnd('듣고 찾기 완료', summary(listenSet.length, wrong.length), ()=>startListen(), wrong.length? ()=>startListen(wrong):null ); return; } const item=listenSet[listenIdx]; listenAnswer=item.front; $('listenCounter').textContent=`${listenIdx+1} / ${listenSet.length}`; const opts=shuffle([item.front, ...sample(data.filter(x=>x.front!==item.front).map(x=>x.front),3)]; const box=$('listenOptions'); box.innerHTML=''; opts.forEach(o=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o; b.onclick=()=>{ [...box.children].forEach(x=>x.disabled=true); if(o===listenAnswer){ b.classList.add('correct'); sfxCorrect(); } else { listenWrong.add(item); b.classList.add('wrong'); [...box.children].forEach(x=>{ if(x.textContent===listenAnswer) x.classList.add('correct'); }); sfxWrong(); } setTimeout(()=>{ listenIdx++; $('listenMessage').textContent=''; loadListenQ(); },1100); }; box.appendChild(b); }); speak(item.back); }
 function playCurrentListenWord(){ if(listenSet.length) speak(listenSet[listenIdx].back); }
 
 /* ===================== Spelling ===================== */

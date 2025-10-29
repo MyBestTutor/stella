@@ -228,7 +228,7 @@ $('clearBtn').onclick=()=>{ data=[]; updateChips(); hideAll(); /* $('modeTitle')
 /* ====== URL Loader (GitHub/Relative) ====== */
 function normalizeGithubUrl(u){
   try{
-    // Allow relative paths (e.g., ./words.json)
+    // Allow relative paths (e.g., ./words_unit1.json)
     const abs = new URL(u, location.href).href;
     // Convert GitHub blob URL to raw
     if(/https?:\/\/github\.com\/[^\/]+\/[^\/]+\/blob\//.test(abs)){

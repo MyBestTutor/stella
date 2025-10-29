@@ -102,7 +102,10 @@
     .modal .box p{ margin:0; color:var(--muted); font-weight:700 }
 
     .hidden{ display:none }
-  </style>
+  
+/* hide noisy debug line */
+#debug{display:none !important; max-height:0 !important; overflow:hidden !important;}
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -412,9 +415,9 @@ function loadCard(quiz){
   document.getElementById('cardCounter').textContent = `${idx+1} / ${data.length}`;
 
   if(!quiz){
-    // Study: show both sides, click to flip
+    // Study: FRONT=English(word), BACK=Korean(meaning)
     frontEl.textContent = c.back || '(빈)';
-    backEl.textContent = c.front || '(빈)';
+    backEl.textContent  = c.front || '(빈)';
     frontEl.style.color = '#0b1220'; backEl.style.color = '#0b1220';
     document.getElementById('countdownDisplay').textContent='카드를 탭하면 뒤집혀요';
     document.getElementById('prevBtn').disabled=false;

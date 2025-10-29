@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>학습 허브 홈</title>
+  <style>
+    :root{
+      --mint:#10b981; --navy:#0f172a; --bg1:#f0fdf4; --bg2:#eef2ff; --card:#ffffff;
+      --ink:#0f172a; --muted:#475569; --border:rgba(15,23,42,.08);
+      --radius:24px; --shadow:0 20px 40px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0}
+    body{
+      font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",Arial;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 500px at -10% -10%, var(--bg1), transparent 60%),
+        radial-gradient(900px 600px at 110% -10%, var(--bg2), transparent 60%),
+        linear-gradient(180deg, #ffffff, #f8fafc);
+      display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .wrap{ width:min(980px, 96vw); }
+    .brand{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .title{ display:flex; align-items:center; gap:12px; padding:14px 18px; border-radius:18px; background:#ffffffcc; backdrop-filter: blur(8px);
+            border:1px solid var(--border); box-shadow: 0 8px 16px rgba(15,23,42,.06); font-weight:900; letter-spacing:-.3px; }
+    .title .emoji{ font-size:1.6rem }
+    .sub{ color:var(--muted); font-weight:800; font-size:.9rem }
+
+    .grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:14px; }
+    .card{
+      position:relative; background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:20px; box-shadow:var(--shadow); overflow:hidden; transition: transform .15s ease, box-shadow .15s ease;
+      min-height:150px; display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow: 0 24px 46px rgba(15,23,42,.12) }
+    .card h2{ margin:0 0 8px; font-size:1.25rem; letter-spacing:-.2px }
+    .card p{ margin:0; color:var(--muted); font-size:.95rem }
+    .cta{
+      margin-top:16px; display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; border:1px solid var(--border);
+      background:linear-gradient(180deg, #34d399, var(--mint)); color:#fff; font-weight:900; text-decoration:none; box-shadow:0 10px 18px rgba(16,185,129,.25);
+    }
+    .cta span{ font-size:1.1rem }
+    .ghost{ background:#e2e8f0; color:#0f172a }
+    .pill{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#f8fafc; font-weight:800; font-size:.85rem }
+
+    .footer{ display:flex; justify-content:space-between; align-items:center; margin-top:16px; color:var(--muted); font-size:.9rem }
+    .links{ display:flex; gap:8px; flex-wrap:wrap }
+    .links a{ color:#0f172a; text-decoration:none; border-bottom:1px dashed rgba(15,23,42,.25); }
+
+    @media (max-width:520px){
+      .title{ padding:12px 14px; }
+      .card{ padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <div class="brand">
+      <div class="title" aria-label="학습 허브 홈">
+        <span class="emoji">📚</span>
+        <div>
+          <div>학습 허브 홈</div>
+          <div class="sub">원하는 앱을 선택해 시작하세요</div>
+        </div>
+      </div>
+      <div class="pill" aria-label="사용자 안내">모바일·PC 반응형 • 저장은 브라우저 로컬</div>
+    </div>
+
+    <div class="grid" id="menuGrid">
+      <!-- 영어 단어 공부 -->
+      <article class="card" aria-label="영어 단어 공부">
+        <div>
+          <h2>영어 단어 공부</h2>
+          <p>플래시카드 · 퀴즈 · 듣기 · 철자 · 매칭 — JSON 불러오기만 하면 바로 시작!</p>
+        </div>
+        <a class="cta" href="flashcard_game.html"><span>🍀</span>열기</a>
+      </article>
+
+      <!-- 학습 플래너 -->
+      <article class="card" aria-label="학습 플래너">
+        <div>
+          <h2>학습 플래너</h2>
+          <p>대시보드·시험관리·일상과제·밀린 할 일(시험/일상 탭) 통합.</p>
+        </div>
+        <a class="cta" href="midplanner_v_6_h_overdue_tabs.html"><span>🗓️</span>열기</a>
+      </article>
+
+      <!-- (옵션) 문장 연습/녹음: 필요 시 주석 해제 -->
+      <!--
+      <article class="card" aria-label="문장 연습">
+        <div>
+          <h2>문장 연습</h2>
+          <p>TTS로 듣고 따라 읽기, 속도/피치 조절, 간단한 녹음 확인.</p>
+        </div>
+        <a class="cta ghost" href="sentence_practice.html"><span>🎙️</span>열기</a>
+      </article>
+
+      <article class="card" aria-label="문장 만들기 & 녹음">
+        <div>
+          <h2>문장 만들기</h2>
+          <p>단어 조합으로 문장 만들기 + 마이크로 녹음.</p>
+        </div>
+        <a class="cta ghost" href="sentence_recorder.html"><span>🧩</span>열기</a>
+      </article>
+      -->
+    </div>
+
+    <div class="footer">
+      <div>ⓘ 메뉴는 자유롭게 추가/삭제할 수 있어요.</div>
+      <div class="links">
+        <a href="#" onclick="toggleOptional();return false;">문장 앱 메뉴 보이기/숨기기</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function toggleOptional(){
+    document.querySelectorAll('.card .cta.ghost').forEach(el=>{
+      const card = el.closest('.card');
+      card.style.display = (card.style.display==='none') ? '' : 'none';
+    });
+  }
+</script>
+</body>
+</html>

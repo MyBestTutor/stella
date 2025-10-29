@@ -67,7 +67,7 @@
     .counter{ text-align:center; color:var(--muted); font-weight:700; margin-top:4px }
     .hint{ text-align:center; color:#0369a1; font-weight:700; min-height:24px; margin-top:4px }
     
-    /* ⭐️ [수정 1] 카드 내용 깜빡임 방지용 CSS 클래스 추가 */
+    /* ⭐️ [깜빡임 방지용 CSS 클래스] 카드 내용/시각 효과를 강력하게 숨김 */
     .flashcard.hide-content .face {
         visibility: hidden !important;
         opacity: 0 !important;
@@ -134,7 +134,7 @@
             <button class="btn" onclick="setMode('spelling')">Spelling</button>
             <button class="btn" onclick="setMode('match')">Game</button>
           </div>
-          <div id="modeTitle" class="hint" style="margin-top:6px">먼저 단어 JSON을 불러오세요.</div>
+          <div id="modeTitle" class="hint"></div>
         </section>
 
         <section id="flashcardUi" class="panel hidden">
@@ -220,53 +220,83 @@ function updateChips(){ $('chipCount').textContent=data.length; $('chipMode').te
 
 /* ===================== Load JSON ===================== */
 $('loadBtn').onclick=()=>$('fileInput').click();
-$('fileInput').onchange=async(ev)=>{ const f=ev.target.files?.[0]; if(!f) return; try{ const text=await f.text(); const js=JSON.parse(text); const ok=Array.isArray(js)? js.filter(d=>d&&typeof d.front==='string'&&typeof d.back==='string') : []; if(!ok.length) throw new Error('배열/형식 확인 필요'); data=ok; idx=0; listenWrong.clear(); spellingWrong.clear(); setMode('study'); $('modeTitle').textContent=`단어 ${data.length}개 로드됨 — 모드 선택`; }catch(e){ alert('JSON 오류: '+e.message); } finally { ev.target.value=''; updateChips(); } };
-$('clearBtn').onclick=()=>{ data=[]; updateChips(); hideAll(); $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.'; };
+$('fileInput').onchange=async(ev)=>{ const f=ev.target.files?.[0]; if(!f) return; try{ const text=await f.text(); const js=JSON.parse(text); const ok=Array.isArray(js)? js.filter(d=>d&&typeof d.front==='string'&&typeof d.back==='string') : []; if(!ok.length) throw new Error('배열/형식 확인 필요'); data=ok; idx=0; listenWrong.clear(); spellingWrong.clear(); setMode('study'); }catch(e){ alert('JSON 오류: '+e.message); } finally { ev.target.value=''; updateChips(); } };
+
+$('clearBtn').onclick=()=>{ 
+    data=[]; 
+    updateChips(); 
+    hideAll(); 
+    // ⭐️ [모드 설명 제거 반영] 초기화 시에만 안내 문구 표시
+    $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.'; 
+};
 
 /* ===================== Modes ===================== */
 let currentModeLabel='—';
 function hideAll(){ ['flashcardUi','listenUi','spellingUi','matchUi'].forEach(id=>$(id).classList.add('hidden')); try{ speechSynthesis.cancel(); }catch(e){} clearTimeout(flipTimer); clearInterval(countdownInterval); }
-function setMode(m){ if(!ensure()) return; initAudio(); hideAll(); if(m==='study'){ currentModeLabel='학습'; isQuiz=false; $('flashcardUi').classList.remove('hidden'); idx=0; loadCard(false); } else if(m==='quiz'){ currentModeLabel='퀴즈'; isQuiz=true; $('flashcardUi').classList.remove('hidden'); idx=0; loadCard(true); } else if(m==='listen'){ currentModeLabel='듣고 찾기'; $('listenUi').classList.remove('hidden'); startListen(); } else if(m==='spelling'){ currentModeLabel='Spelling'; $('spellingUi').classList.remove('hidden'); startSpelling(); } else if(m==='match'){ currentModeLabel='game'; $('matchUi').classList.remove('hidden'); startMatch(); } updateChips(); }
+function setMode(m){ 
+    if(!ensure()) return; 
+    initAudio(); 
+    hideAll(); 
+    // ⭐️ [모드 설명 제거 반영] 모드 변경 시 설명 문구 초기화
+    $('modeTitle').textContent = ''; 
+    
+    if(m==='study'){ 
+        currentModeLabel='학습'; 
+        isQuiz=false; 
+        $('flashcardUi').classList.remove('hidden'); 
+        idx=0; 
+        loadCard(false); 
+    } else if(m==='quiz'){ 
+        currentModeLabel='퀴즈'; 
+        isQuiz=true; 
+        $('flashcardUi').classList.remove('hidden'); 
+        idx=0; 
+        loadCard(true); 
+    } else if(m==='listen'){ 
+        currentModeLabel='듣고 찾기'; 
+        $('listenUi').classList.remove('hidden'); 
+        startListen(); 
+    } else if(m==='spelling'){ 
+        currentModeLabel='Spelling'; 
+        $('spellingUi').classList.remove('hidden'); 
+        startSpelling(); 
+    } else if(m==='match'){ 
+        currentModeLabel='game'; 
+        $('matchUi').classList.remove('hidden'); 
+        startMatch(); 
+    } 
+    updateChips(); 
+}
 
-/* ===================== Flashcard / Quiz (깜빡임 최종 수정) ===================== */
+/* ===================== Flashcard / Quiz (최종 수정 버전) ===================== */
 const flashcard=$('flashcard'), front=$('cardFront'), back=$('cardBack');
 
-// 인덱스만 변경하고 loadCard를 호출하는 표준 함수 (변경 없음)
-function advance(dir){ 
-    idx = dir==='next'? (idx+1)%data.length : (idx-1+data.length)%data.length; 
-    loadCard(isQuiz); 
-}
+function advance(dir){ idx = dir==='next'? (idx+1)%data.length : (idx-1+data.length)%data.length; loadCard(isQuiz); }
+function nextCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('next'),60); } }
+function prevCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('prev'),60); } }
 
-function nextCard(){ 
-    if(!isQuiz){ 
-        flashcard.classList.remove('is-flipped'); 
-        setTimeout(()=>advance('next'),60); 
-    } 
-}
-function prevCard(){ 
-    if(!isQuiz){ 
-        flashcard.classList.remove('is-flipped'); 
-        setTimeout(()=>advance('prev'),60); 
-    } 
-}
-
-// ⭐️ [수정 2] loadCard 함수 전체를 이 코드로 교체합니다.
-function loadCard(quiz){ 
+// ⭐️ [최종 수정] loadCard 함수 전체를 이 코드로 교체합니다.
+// keepHidden 파라미터(기본값 false)를 추가하여, 자동 진행 시 카드 보이기 명령을 제어합니다.
+function loadCard(quiz, keepHidden = false){ 
     const c=data[idx]; 
     
-    // 1. loadCard 시작 시 카드 내용을 보이게 함 (이전에 숨겨져 있었다면)
-    flashcard.classList.remove('hide-content');
-    flashcard.classList.remove('is-flipped'); 
-    
-    // 2. 내용 업데이트 (현재 단어)
+    // 1. 내용 업데이트 (현재 단어)
     front.textContent=c.back; 
     back.textContent=c.front; 
     
+    // keepHidden이 true일 때는 카드를 보이게 하지 않습니다. (내용 업데이트만 수행)
+    if (!keepHidden) {
+        flashcard.classList.remove('hide-content'); // 숨김 클래스 제거 (카드를 보이게 함)
+    }
+    
+    flashcard.classList.remove('is-flipped'); 
+    
     $('cardCounter').textContent=`${idx+1} / ${data.length}`; 
     $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
-    $('modeTitle').textContent = quiz? '퀴즈: 영어 → (뒤집힘) 한글' : '학습: 영어 카드 클릭 시 뒤집힘'; 
     
-    // 타이머 초기화
+    // ⭐️ [모드 설명 제거 반영] 모드 설명 문구는 여기서도 빈 값으로 설정
+    $('modeTitle').textContent = ''; 
+    
     clearTimeout(flipTimer); 
     clearInterval(countdownInterval); 
 
@@ -277,29 +307,35 @@ function loadCard(quiz){
         let cnt=QUIZ_DELAY/1000; 
         $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; 
         
-        // 1. 카운트다운 로직
+        // 카운트다운 로직
         countdownInterval=setInterval(()=>{ 
             cnt--; 
             if(cnt>0) $('countdownDisplay').textContent=`${cnt} 초 후 뒤집힘`; 
         },1000); 
         
-        // 2. 3초 후 카드 뒤집기
+        // 3초 후 카드 뒤집기
         flipTimer=setTimeout(()=>{ 
             flashcard.classList.add('is-flipped'); 
             sfxFlip(); 
             
-            // ⭐️ [핵심 수정: 깜빡임 방지 로직]
             $('countdownDisplay').textContent = '정답 노출! 1.6초 후 다음 단어로 자동 이동합니다.';
 
             setTimeout(() => {
-                // 1. 내용 업데이트 전에 카드를 숨김 (CSS 클래스 사용으로 확실하게)
+                // 1. 다음 로드 전에 카드를 숨김
                 flashcard.classList.add('hide-content'); 
                 
-                // 2. 50ms 대기 후 다음 단어 로드
+                // 2. 50ms 대기 후 다음 단어 인덱스로 이동
                 setTimeout(() => {
-                    // advance() 호출 -> loadCard()가 재실행됨.
-                    // loadCard 시작 시점에 hide-content가 제거되면서 새 내용이 보임.
-                    advance('next'); 
+                    idx = (idx + 1) % data.length; // advance를 사용하지 않고 인덱스만 변경
+                    
+                    // 3. loadCard를 호출하되, 'keepHidden=true'로 전달하여 내용 업데이트만 수행
+                    loadCard(isQuiz, true); 
+                    
+                    // 4. 내용 업데이트 후 50ms 뒤에 카드를 보이게 함 (확실한 분리)
+                    setTimeout(() => {
+                        flashcard.classList.remove('hide-content');
+                    }, 50); 
+                    
                 }, 50); 
             }, 1600); 
             
@@ -342,7 +378,7 @@ function closeModal(){ $('successModal').style.display='none'; }
 function summary(total, wrong){ return `총 ${total}문제 · 오답 ${wrong}문제`; }
 
 /* ===================== Init ===================== */
-(function(){ updateChips(); initAudio(); })();
+(function(){ updateChips(); initAudio(); $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.'; })();
 </script>
 </body>
 </html>

@@ -300,34 +300,20 @@ function setMode(m){ if(!ensure()) return; initAudio(); hideAll(); if(m==='study
 /* ===================== Flashcard / Quiz ===================== */
 const flashcard=$('flashcard'), front=$('cardFront'), back=$('cardBack');
 
-// 인덱스만 변경하고 loadCard를 호출하는 단순한 함수 (내용 업데이트를 트리거)
-function advance(dir){ 
-    idx = dir==='next'? (idx+1)%data.length : (idx-1+data.length)%data.length; 
-    loadCard(isQuiz); 
-}
+// advance, nextCard, prevCard 함수는 파일에 있는 그대로 유지합니다.
+function advance(dir){ idx = dir==='next'? (idx+1)%data.length : (idx-1+data.length)%data.length; loadCard(isQuiz); }
+function nextCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('next'),60); } }
+function prevCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('prev'),60); } }
 
-function nextCard(){ 
-    if(!isQuiz){ 
-        flashcard.classList.remove('is-flipped'); 
-        setTimeout(()=>advance('next'),60); 
-    } 
-}
-function prevCard(){ 
-    if(!isQuiz){ 
-        flashcard.classList.remove('is-flipped'); 
-        setTimeout(()=>advance('prev'),60); 
-    } 
-}
-
-// ⭐️ [가장 확실한 깜빡임 방지 로직 적용] loadCard 전체 교체
+// ⭐️ [최종 수정] loadCard 함수 전체를 이 코드로 교체합니다.
 function loadCard(quiz){ 
     const c=data[idx]; 
     
-    // 내용 업데이트는 loadCard 시작 시 수행
+    // 내용 업데이트 (현재 단어)
     front.textContent=c.back; 
     back.textContent=c.front; 
     
-    flashcard.classList.remove('is-flipped'); 
+    flashcard.classList.remove('is-flipped'); // 카드 뒤집힌 상태 해제
     
     $('cardCounter').textContent=`${idx+1} / ${data.length}`; 
     $('countdownDisplay').textContent=quiz? '카운트다운 시작…':'카드를 탭하면 뒤집혀요'; 
@@ -356,25 +342,23 @@ function loadCard(quiz){
             flashcard.classList.add('is-flipped'); 
             sfxFlip(); 
             
-            // ⭐️ [핵심 수정: 깜빡임 방지 로직]
+            // ⭐️ [깜빡임 방지 및 다음 단어 로드 로직]
             $('countdownDisplay').textContent = '정답 노출! 1.6초 후 다음 단어로 자동 이동합니다.';
 
             setTimeout(() => {
-                 // 1. 다음 단어 로드 전에 카드를 완전히 숨김 (깜빡이는 순간을 감춥니다.)
+                 // 1. 다음 단어 로드 전에 카드를 완전히 숨김 (핵심)
                  flashcard.style.visibility = 'hidden'; 
                  
-                 // 2. 50ms 뒤에 다음 단어 로드 (내용 업데이트)
+                 // 2. 50ms 대기 (숨김 처리가 확실히 되도록 시간을 줍니다.)
                  setTimeout(() => {
-                    // advance를 호출하면 loadCard가 다시 호출되고, 새로운 단어 내용으로 업데이트됩니다.
-                    advance('next'); 
+                    // 다음 단어 인덱스로 이동
+                    idx = (idx + 1) % data.length;
                     
-                    // 3. 내용 업데이트 후 50ms 뒤에 카드를 다시 보이게 함
-                    // loadCard가 새로 실행되었지만, 여기서 visibility를 다시 'visible'로 설정하여 확실하게 보장합니다.
-                    setTimeout(() => {
-                        flashcard.style.visibility = 'visible'; 
-                    }, 50); 
+                    // loadCard를 호출하여 새 단어 내용으로 업데이트하고 타이머를 재시작합니다.
+                    // loadCard가 새로 실행될 때 flashcard.style.visibility를 다시 'visible'로 설정합니다.
+                    loadCard(isQuiz); 
                     
-                 }, 50); // 50ms 뒤에 로드 시작 (브라우저가 숨김을 처리할 시간 확보)
+                 }, 50); 
             }, 1600); 
             
         }, QUIZ_DELAY); 
@@ -391,7 +375,6 @@ function loadCard(quiz){
         }; 
     } 
 }
-
 
 function advance(dir){ if(isQuiz){ clearTimeout(flipTimer); clearInterval(countdownInterval); } if(dir==='next'){ if(idx<data.length-1) idx++; } else if(dir==='prev'){ if(idx>0) idx--; } loadCard(isQuiz); }
 function nextCard(){ advance('next'); }

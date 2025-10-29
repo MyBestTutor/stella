@@ -254,7 +254,7 @@ function parseAndLoad(js){
   setMode('study');
   updateChips();
 }
-const DEFAULT_JSON_PATH = './words.json';
+const DEFAULT_JSON_PATH = './words_unit1.json';
 $('loadUrlBtn').onclick = async ()=>{
   try{
     const js = await fetchJsonFromUrl(DEFAULT_JSON_PATH);

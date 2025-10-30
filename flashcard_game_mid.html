@@ -2,32 +2,29 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8"/>
-  <title>단어 학습 · Unit1 RAW Loader</title>
+  <title>단어 학습 · Unit1 RAW Loader (rev2)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <style>
-    /* Google Fonts - Pretendard (깔끔한 폰트) */
-    /* (Pages-safe) 외부 폰트 @import 제거: 시스템 폰트 사용 */
-
-    /* ===== Design tokens: calm, planner-like ===== */
     :root{
-      --bg:#f7f8fa;           /* page bg */
-      --bg1:#f0fdf4;          /* new bg gradient color 1 (light mint) */
-      --bg2:#eef2ff;          /* new bg gradient color 2 (light lavender) */
-      --panel:#ffffff;         /* cards/panels */
-      --ink:#0b1220;           /* main text */
-      --muted:#667085;         /* secondary text */
-      --border:#e5e7eb;        /* subtle borders */
-      --accent:#0ea5e9;        /* cyan accent (subtle) */
-      --radius:12px;           /* tighter radius */
-      --shadow:0 6px 18px rgba(2,6,23,.06); /* soft shadow */
+      --bg:#f7f8fa;
+      --bg1:#ecfeff;            /* light cyan */
+      --bg2:#f5f3ff;            /* light purple */
+      --panel:#ffffff;
+      --ink:#0b1220;
+      --muted:#667085;
+      --border:#e5e7eb;
+      --accent:#0ea5e9;         /* cyan */
+      --accent-2:#7c3aed;       /* purple */
+      --radius:14px;
+      --shadow:0 8px 22px rgba(2,6,23,.06);
+      --tint-1: rgba(14,165,233,0.08);
+      --tint-2: rgba(124,58,237,0.07);
     }
     *{box-sizing:border-box}
     html,body{height:100%; margin:0}
     body{
-      /* 폰트 변경: Pretendard를 최우선으로 적용하여 깔끔한 느낌 부여 */
       font-family: 'Pretendard', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       color:var(--ink);
-      /* UI 개선: 그라디언트 배경으로 변경 */
       background:
         radial-gradient(900px 500px at -10% -10%, var(--bg1), transparent 60%),
         radial-gradient(900px 600px at 110% -10%, var(--bg2), transparent 60%),
@@ -37,75 +34,216 @@
     .wrap{ width:min(960px,96vw); margin:22px auto; }
 
     /* ===== AppBar ===== */
-    .appbar{ position:sticky; top:0; z-index:10; background:rgba(255,255,255,.9); backdrop-filter:saturate(160%) blur(6px);
-      border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
-      display:flex; align-items:center; gap:12px; padding:10px 12px; }
-    /* 굵기 조정 (800 -> 700) */
-    .title{ font-weight:700; letter-spacing:-.2px; font-size:1.05rem; }
+    .appbar{
+      position:sticky; top:0; z-index:10;
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.88));
+      backdrop-filter:saturate(160%) blur(6px);
+      border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+      display:flex; align-items:center; gap:12px; padding:10px 12px;
+    }
+    .title{
+      font-weight:800; letter-spacing:-.3px; font-size:1.15rem;
+      background:linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
     .spacer{ flex:1 }
-    .chip{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
-      border:1px solid var(--border); background:#fff; color:var(--muted); font-weight:700; font-size:.9rem }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border); background:#fff;
+      color:var(--muted); font-weight:700; font-size:.9rem
+    }
 
-    /* ===== Sections / Panels ===== */
-    .panel{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; }
-    /* 굵기 조정 (800 -> 700) */
+    /* ===== Panels with soft colored edge ===== */
+    .panel{
+      background:
+        linear-gradient(0deg, #fff, #fff) padding-box,
+        linear-gradient(135deg, var(--accent), var(--accent-2)) border-box;
+      border:1px solid transparent;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
     .panel h3{ margin:0 0 8px; font-size:0.98rem; font-weight:700; letter-spacing:-.2px; color:#0f172a }
     .grid{ display:grid; gap:12px }
     .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
     @media(min-width:900px){ .layout{ display:grid; grid-template-columns:280px 1fr; gap:12px } }
 
     /* ===== Controls ===== */
-    .btn{ appearance:none; border:1px solid var(--border); background:#fff; color:var(--ink);
-      border-radius:10px; padding:10px 14px; /* 굵기 조정 (800 -> 600) */ font-weight:600; cursor:pointer; box-shadow:var(--shadow);
-      transition: background .12s ease, border-color .12s ease }
-    .btn:hover{ background:#f8fafc }
+    .btn{
+      appearance:none; border:1px solid var(--border); background:#fff; color:var(--ink);
+      border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; box-shadow:var(--shadow);
+      transition: background .12s ease, border-color .12s ease, transform .06s ease;
+    }
+    .btn:hover{ background:var(--tint-1) }
+    .btn:active{ transform: translateY(1px); }
     .btn:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none }
-    .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent) }
+    .btn-primary{
+      background:linear-gradient(180deg, var(--accent), #0b9ed6);
+      color:#fff; border-color:transparent;
+    }
+    /* Mode buttons subtle colors */
+    .btn[data-mode]{ background:linear-gradient(180deg,#f9fafb,var(--tint-1)); border:1px solid var(--accent); color:#0369a1; }
+    .btn[data-mode]:hover{ background:linear-gradient(180deg,#f0f9ff,var(--tint-1)); }
+    
+/* Individual mode button colors */
+.btn[data-mode][onclick*="study"]{ border:1px solid #14b8a6; background:linear-gradient(180deg,#f0fdfa,#ccfbf1); color:#0f766e; }
+.btn[data-mode][onclick*="study"]:hover{ background:linear-gradient(180deg,#ccfbf1,#a7f3d0); }
 
-    /* ===== Flashcard ===== */
+.btn[data-mode][onclick*="quiz"]{ border:1px solid #a78bfa; background:linear-gradient(180deg,#f5f3ff,#ede9fe); color:#6d28d9; }
+.btn[data-mode][onclick*="quiz"]:hover{ background:linear-gradient(180deg,#ede9fe,#ddd6fe); }
+
+.btn[data-mode][onclick*="listen"]{ border:1px solid #38bdf8; background:linear-gradient(180deg,#f0f9ff,#e0f2fe); color:#0369a1; }
+.btn[data-mode][onclick*="listen"]:hover{ background:linear-gradient(180deg,#e0f2fe,#bae6fd); }
+
+.btn[data-mode][onclick*="spelling"]{ border:1px solid #fb7185; background:linear-gradient(180deg,#fff1f2,#ffe4e6); color:#be123c; }
+.btn[data-mode][onclick*="spelling"]:hover{ background:linear-gradient(180deg,#ffe4e6,#fecdd3); }
+
+.btn[data-mode][onclick*="match"]{ border:1px solid #7dd3fc; background:linear-gradient(180deg,#ecfeff,#e0f2fe); color:#075985; }
+.btn[data-mode][onclick*="match"]:hover{ background:linear-gradient(180deg,#e0f2fe,#bae6fd); }
+
+/* Make local load button same tone as others */
+    #loadBtn.btn-primary{ background:#fff; color:var(--ink); border:1px solid var(--border); }
+    .btn-primary:hover{ filter:brightness(1.02); }
+
+    /* ===== Flashcard (soft tints) ===== */
     .flashcard-box{ width:min(560px,90vw); height:232px; margin:8px auto; perspective:1000px }
     .flashcard{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .45s }
     .flashcard.is-flipped{ transform:rotateY(180deg) }
-    .face{ position:absolute; inset:0; display:grid; place-items:center; backface-visibility:hidden; border-radius:10px; border:1px solid var(--border); }
-    /* 굵기 유지: 카드의 앞면은 강조 */
-    .front{ background:#ffffff; color:#0b1220; font-weight:800; font-size:2rem }
-    /* 굵기 조정 (700 -> 600) */
-    .back{ background:#f9fafb; color:#0b1220; font-weight:600; font-size:1.5rem; transform:rotateY(180deg) }
-    .counter{ text-align:center; color:var(--muted); font-weight:700; margin-top:4px }
+    .face{
+      position:absolute; inset:0; display:grid; place-items:center; backface-visibility:hidden;
+      border-radius:12px; border:1px solid var(--border);
+    }
+    .front{
+      background:linear-gradient(180deg, #ffffff, rgba(14,165,233,0.06));
+      color:#0b1220; font-weight:800; font-size:2rem;
+    }
+    .back{
+      background:linear-gradient(180deg, #ffffff, rgba(124,58,237,0.06));
+      color:#0b1220; font-weight:600; font-size:1.5rem; transform:rotateY(180deg);
+    }
+    .counter{ text-align:center; color:#475569; font-weight:700; margin-top:4px }
     .hint{ text-align:center; color:#0369a1; font-weight:700; min-height:24px; margin-top:4px }
 
     /* ===== Options (Listen) ===== */
-    /* 굵기 조정 (800 -> 700) */
     .opt{ display:flex; align-items:center; justify-content:center; padding:10px 12px; border:1px solid var(--border);
-      background:#fff; border-radius:10px; font-weight:700 }
+      background:#fff; border-radius:12px; font-weight:700 }
     .opt.correct{ border-color:#16a34a; background:#f0fdf4; color:#166534 }
     .opt.wrong{ border-color:#ef4444; background:#fef2f2; color:#991b1b }
 
     /* ===== Spelling ===== */
-    /* 굵기 유지: 입력 슬롯의 텍스트는 강조 */
     .slot{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:46px; margin:0 2px; border-bottom:3px solid var(--accent); font-size:1.5rem; font-weight:800 }
-    /* 굵기 조정 (800 -> 700) */
-    .key{ width:40px; height:40px; border-radius:8px; border:1px solid var(--border); background:#fff; font-weight:700; margin:4px }
+    .key{ width:40px; height:40px; border-radius:10px; border:1px solid var(--border); background:#fff; font-weight:700; margin:4px }
+    .key:hover{ background:var(--tint-2); }
 
     /* ===== Match ===== */
     .grid-cards{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px }
-    /* 굵기 조정 (800 -> 700) */
-    .mcard{ background:#fff; border:1px solid var(--border); border-radius:10px; height:82px; display:grid; place-items:center; font-weight:700; font-size:1.02rem; box-shadow:var(--shadow); cursor:pointer }
+    .mcard{ background:#fff; border:1px solid var(--border); border-radius:12px; height:82px; display:grid; place-items:center; font-weight:700; font-size:1.02rem; box-shadow:var(--shadow); cursor:pointer }
     .mcard.matched{ border-color:#16a34a; background:#f0fdf4; color:#166534; cursor:default }
     .mcard.wrong{ border-color:#ef4444; background:#fef2f2; color:#991b1b }
 
-    /* ===== Modal ===== */
     .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(255,255,255,.92); z-index:50 }
-    .modal .box{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; width:min(440px,92vw); text-align:center; box-shadow:var(--shadow) }
-    /* 굵기 조정 (800 -> 700) */
+    .modal .box{ background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px; width:min(440px,92vw); text-align:center; box-shadow:var(--shadow) }
     .modal .box h2{ margin:0 0 6px; font-size:1.3rem; letter-spacing:-.2px; font-weight:700 }
     .modal .box p{ margin:0; color:var(--muted); font-weight:700 }
 
     .hidden{ display:none }
   
-/* hide noisy debug line */
-#debug{display:none !important; max-height:0 !important; overflow:hidden !important;}
+/* Title gradient underline */
+.title{
+  position:relative;
+}
+.title::after{
+  content:"";
+  position:absolute;
+  left:0; bottom:-6px;
+  width:100%;
+  height:4px;
+  border-radius:4px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  opacity:.85;
+}
+
+
+/* Full-width bottom gradient bar for the appbar */
+.appbar{
+  position:relative;
+  overflow:hidden;
+}
+.appbar::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:5px;
+  border-radius:0 0 12px 12px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  opacity:.9;
+  pointer-events:none;
+}
+
 </style>
+
+<style>
+/* === FINAL OVERRIDES: Tone-on-Tone Harmony (C) with clear contrasts === */
+/* Base (neutral) for mode buttons */
+.btn[data-mode]{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  color:var(--ink) !important;
+}
+
+/* Study – Grey Mint */
+.btn[data-mode][onclick*="study"]{
+  border-color:#14b8a6 !important;
+  background:linear-gradient(180deg,#a7f3d0,#99f6e4) !important;
+  color:#065f46 !important;
+}
+.btn[data-mode][onclick*="study"]:hover{
+  background:linear-gradient(180deg,#99f6e4,#86efac) !important;
+}
+
+/* Quiz – Cool Gray */
+.btn[data-mode][onclick*="quiz"]{
+  border-color:#94a3b8 !important;
+  background:linear-gradient(180deg,#e2e8f0,#cbd5e1) !important;
+  color:#1f2937 !important;
+}
+.btn[data-mode][onclick*="quiz"]:hover{
+  background:linear-gradient(180deg,#e5e7eb,#cbd5e1) !important;
+}
+
+/* Listen – Soft Blue */
+.btn[data-mode][onclick*="listen"]{
+  border-color:#93c5fd !important;
+  background:linear-gradient(180deg,#dbeafe,#bfdbfe) !important;
+  color:#1e3a8a !important;
+}
+.btn[data-mode][onclick*="listen"]:hover{
+  background:linear-gradient(180deg,#c7e2ff,#bcd5ff) !important;
+}
+
+/* Spelling – Lavender Gray (NOT pink) */
+.btn[data-mode][onclick*="spelling"]{
+  border-color:#a78bfa !important;
+  background:linear-gradient(180deg,#ede9fe,#ddd6fe) !important;
+  color:#4c1d95 !important;
+}
+.btn[data-mode][onclick*="spelling"]:hover{
+  background:linear-gradient(180deg,#e9e2ff,#d5ccff) !important;
+}
+
+/* Game – Pale Mint Blue */
+.btn[data-mode][onclick*="match"]{
+  border-color:#7dd3fc !important;
+  background:linear-gradient(180deg,#e0f2fe,#bae6fd) !important;
+  color:#0c4a6e !important;
+}
+.btn[data-mode][onclick*="match"]:hover{
+  background:linear-gradient(180deg,#d3eefc,#b8e2fa) !important;
+}
+</style>
+
 </head>
 <body>
   <div class="wrap">
@@ -120,14 +258,11 @@
       <aside class="grid">
         <section class="panel">
           <h3>빠른 시작</h3>
-<div id="debug" style="margin-top:6px; font-size:12px; color:#6b7280"></div>
-<div id="debug" style="margin-top:6px; font-size:12px; color:#6b7280"></div>
-<div id="debug" style="margin-top:6px; font-size:12px; color:#6b7280"></div>
+          <!-- 경로/URL 표시 요소 제거 -->
           <div class="row">
             <input id="fileInput" type="file" accept=".json,application/json" class="hidden"/>
-            <button id="loadBtn" class="btn btn-primary">로컬 JSON 불러오기</button>
-            <button id="loadRepoUnit1" class="btn">Unit 1 불러오기</button>
-            <button id="loadRepoUnit1" class="btn">Unit 1 불러오기</button>
+            <button id="loadBtn" class="btn btn-primary">로컬파일</button>
+            <button id="loadRepoUnit1" class="btn">Unit 1</button>
             <button id="clearBtn" class="btn">초기화</button>
           </div>
         </section>
@@ -137,11 +272,11 @@
         <section class="panel">
           <h3>모드</h3>
           <div class="row">
-            <button class="btn" onclick="setMode('study')">학습</button>
-            <button class="btn" onclick="setMode('quiz')">퀴즈</button>
-            <button class="btn" onclick="setMode('listen')">듣고 찾기</button>
-            <button class="btn" onclick="setMode('spelling')">Spelling</button>
-            <button class="btn" onclick="setMode('match')">Game</button>
+            <button class="btn" data-mode onclick="setMode('study')">학습</button>
+            <button class="btn" data-mode onclick="setMode('quiz')">퀴즈</button>
+            <button class="btn" data-mode onclick="setMode('listen')">듣고 찾기</button>
+            <button class="btn" data-mode onclick="setMode('spelling')">Spelling</button>
+            <button class="btn" data-mode onclick="setMode('match')">Game</button>
           </div>
           <div id="modeTitle" class="hint hidden" style="margin-top:6px">먼저 단어 JSON을 불러오세요.</div>
         </section>
@@ -211,17 +346,49 @@ let listenSet=[], listenIdx=0, listenAnswer=''; let listenWrong=new Set();
 let spellSet=[], spellIdx=0, target='', guess=''; let spellingWrong=new Set();
 let matchFlipped=[], matchFound=0, matchLock=false;
 
-/* ===================== Audio: WebAudio tones (no external files) ===================== */
+/* ===================== Audio: WebAudio tones ===================== */
 let audioCtx=null; let audioReady=false;
 function initAudio(){ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); audioReady=true; }catch(e){ audioReady=false; } }
 ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{ if(!audioReady) initAudio(); },{once:true,passive:true}));
-function tone(freq=880, dur=0.12, type='sine', vol=0.25){ if(!audioReady) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime+.01); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur); o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+dur); }
-function sfxFlip(){ tone(720, .10, 'sine', .22) }
-function sfxCorrect(){ tone(880, .14, 'sine', .22); setTimeout(()=>tone(1320,.16,'sine',.2), 40) }
-function sfxWrong(){ tone(220, .12, 'triangle', .22); setTimeout(()=>tone(180,.12,'triangle',.18), 80) }
+function tone(freq=880, dur=0.12, type='sine', vol=0.22){ if(!audioReady) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime+.01); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur); o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+dur); }
+function sfxFlip(){ tone(720, .10, 'sine', .18) }
+function sfxCorrect(){ tone(880, .14, 'sine', .20); setTimeout(()=>tone(1320,.16,'sine',.18), 40) }
+function sfxWrong(){ tone(220, .12, 'triangle', .20); setTimeout(()=>tone(180,.12,'triangle',.18), 80) }
 
-/* ===================== TTS: always ON ===================== */
-function speak(text){ try{ if('speechSynthesis' in window){ const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; speechSynthesis.speak(u);} }catch(e){} }
+/* ===================== Softer TTS ===================== */
+let ttsVoice = null;
+function chooseBestVoice(){
+  try{
+    const all = speechSynthesis.getVoices();
+    const en = all.filter(v=> (v.lang||'').toLowerCase().startsWith('en'));
+    const prefs = ['Google US English','Microsoft Aria','Microsoft Jenny','Samantha','Google UK English Female','Google US English Female'];
+    en.sort((a,b)=>{
+      const ai = prefs.findIndex(p=> (a.name||'').includes(p));
+      const bi = prefs.findIndex(p=> (b.name||'').includes(p));
+      return (ai<0?99:ai) - (bi<0?99:bi);
+    });
+    return en[0] || null;
+  }catch(e){ return null; }
+}
+if ('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = ()=>{ ttsVoice = chooseBestVoice(); };
+  // Initialize once
+  setTimeout(()=>{ ttsVoice = chooseBestVoice(); }, 200);
+}
+function speak(text){
+  try{
+    if('speechSynthesis' in window){
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-US';
+      if(ttsVoice) u.voice = ttsVoice;
+      u.rate = 0.88;   // slower
+      u.pitch = 1.02;  // a tad warmer
+      u.volume = 1;
+      try{ speechSynthesis.cancel(); }catch(e){}
+      speechSynthesis.speak(u);
+    }
+  }catch(e){}
+}
 
 /* ===================== Helpers ===================== */
 const $=id=>document.getElementById(id);
@@ -232,89 +399,62 @@ function updateChips(){ $('chipCount').textContent=data.length; try{ $('chipMode
 
 /* ===================== Load JSON ===================== */
 $('loadBtn').onclick=()=>$('fileInput').click();
-$('fileInput').onchange=async(ev)=>{ const f=ev.target.files?.[0]; if(!f) return; try{ const text=await f.text(); const js=JSON.parse(text); const ok=Array.isArray(js)? js.filter(d=>d&&typeof d.front==='string'&&typeof d.back==='string') : []; if(!ok.length) throw new Error('배열/형식 확인 필요'); data=ok; idx=0; listenWrong.clear(); spellingWrong.clear(); if(__initDone){ setMode('study'); } else { __pendingStart = ()=>setMode('study'); } /* $('modeTitle').textContent=`단어 ${data.length}개 로드됨 — 모드 선택`; */ }catch(e){ alert('JSON 오류: '+e.message); } finally { ev.target.value=''; updateChips(); } };
-$('clearBtn').onclick=()=>{ data=[]; updateChips(); hideAll(); /* $('modeTitle').textContent='먼저 단어 JSON을 불러오세요.'; */ };
-
-/* ====== Repo JSON buttons (multi) ====== */
-function resolveRepoUrl(rel){
+$('fileInput').onchange=async(ev)=>{
+  const f=ev.target.files?.[0]; if(!f) return;
   try{
-    // Make absolute relative to current HTML location (works on GitHub Pages)
-    return new URL(rel, location.href).href;
+    const text=await f.text();
+    const js=JSON.parse(text);
+    const ok=Array.isArray(js)? js.filter(d=>d&&typeof d.front==='string'&&typeof d.back==='string') : [];
+    if(!ok.length) throw new Error('배열/형식 확인 필요');
+    data=ok; idx=0; listenWrong.clear(); spellingWrong.clear();
+    if(__initDone){ setMode('study'); } else { __pendingStart = ()=>setMode('study'); }
+    // 파일 경로나 이름을 화면에 표시하지 않음
+  //  alert(`불러오기 성공 (단어 ${data.length}개)`);
   }catch(e){
-    return rel;
-  }
-}
+    alert('JSON 오류: '+e.message);
+  } finally { ev.target.value=''; updateChips(); }
+};
+$('clearBtn').onclick=()=>{ data=[]; updateChips(); hideAll(); };
+
+/* ====== Repo JSON buttons (no URL shown) ====== */
+function resolveRepoUrl(rel){ try{ return new URL(rel, location.href).href; }catch(e){ return rel; } }
 async function fetchRepoJson(relPath){
   const abs = resolveRepoUrl(relPath);
   const bust = (abs.includes('?') ? '&' : '?') + 'v=' + Date.now();
   const finalUrl = abs + bust;
-  document.getElementById('debug').textContent = '불러오기: ' + finalUrl;
   const res = await fetch(finalUrl, { cache:'no-store' });
-  if(!res.ok){
-    throw new Error(`HTTP ${res.status} ${res.statusText} — ${abs}`);
-  }
-  const js = await res.json();
-  return js;
+  if(!res.ok){ throw new Error(`HTTP ${res.status} ${res.statusText}`); }
+  return await res.json();
 }
 async function loadFromRepo(relPath){
   try{
     const js = await fetchRepoJson(relPath);
     parseAndLoad(js);
-    alert(`불러오기 성공: ${relPath} (단어 ${data.length}개)`);
+   // alert(`불러오기 성공 (단어 ${data.length}개)`);
   }catch(e){
-    document.getElementById('debug').textContent = '에러: ' + (e?.message || e);
-    alert('저장소 JSON 불러오기 실패:\n' + (e?.message || e));
+    alert('저장소 JSON 불러오기 실패:\\n' + (e?.message || e));
   }
 }
 const BASE_URL = 'https://raw.githubusercontent.com/MyBestTutor/stella/main/';
 $('loadRepoUnit1').onclick = ()=> loadFromRepo(BASE_URL + 'words_unit1.json');
 
-
-/* ====== URL Loader (GitHub/Relative) ====== */
-function normalizeGithubUrl(u){
-  try{
-    // Allow relative paths (e.g., ./words.json)
-    const abs = new URL(u, location.href).href;
-    // Convert GitHub blob URL to raw
-    if(/https?:\/\/github\.com\/[^\/]+\/[^\/]+\/blob\//.test(abs)){
-      return abs.replace('https://github.com/','https://raw.githubusercontent.com/').replace('/blob/','/');
-    }
-    return abs;
-  }catch(e){
-    return u;
-  }
-}
-async function fetchJsonFromUrl(u){
-  const url = normalizeGithubUrl(u.trim());
-  const res = await fetch(url, { cache:'no-store' });
-  if(!res.ok) throw new Error(`HTTP ${res.status} (${res.statusText})`);
-  const js = await res.json();
-  return js;
-}
-
-/* ===== Flexible JSON Parser ===== */
+/* ===== Flexible JSON Parser (kept) ===== */
 function toPairs(js){
-  // 1) if object with "words" key
   if(js && !Array.isArray(js) && Array.isArray(js.words)){ js = js.words; }
   if(!Array.isArray(js)) return [];
-
-  // Accept multiple shapes
   const pairs = [];
   const keySets = [
     ['front','back'], ['ko','en'], ['korean','english'], ['meaning','word'],
     ['mean','word'], ['definition','term'], ['a','q'], ['q','a'], ['prompt','answer'],
     ['뜻','단어'], ['한글','영어']
   ];
-
   for(const item of js){
     if(typeof item === 'string'){
-      // Try split by | or comma
       let s = item.trim();
       let ko='', en='';
       if(s.includes('|')){
         [ko,en] = s.split('|').map(t=>t.trim());
       }else if(s.includes(',')){
-        // guess "사과, apple" or "apple, 사과"
         const [p1,p2] = s.split(',').map(t=>t.trim());
         if(/[a-zA-Z]/.test(p1) && /[가-힣]/.test(p2)){ en=p1; ko=p2; } else { ko=p1; en=p2; }
       }
@@ -322,20 +462,9 @@ function toPairs(js){
       continue;
     }
     if(item && typeof item === 'object'){
-      // direct front/back
-      if(typeof item.front==='string' && typeof item.back==='string'){
-        pairs.push({front:item.front, back:item.back});
-        continue;
-      }
-      // try mapped keys
+      if(typeof item.front==='string' && typeof item.back==='string'){ pairs.push({front:item.front, back:item.back}); continue; }
       for(const [kf, kb] of keySets){
-        if(typeof item[kf]==='string' && typeof item[kb]==='string'){
-          // our convention: front = Korean/meaning, back = English/word
-          // If mapping suggests the inverse (e.g., definition/term), we map accordingly:
-          // Assume kb (second) is English term.
-          pairs.push({front:item[kf], back:item[kb]});
-          break;
-        }
+        if(typeof item[kf]==='string' && typeof item[kb]==='string'){ pairs.push({front:item[kf], back:item[kb]}); break; }
       }
     }
   }
@@ -349,8 +478,6 @@ function parseAndLoadFlexible(js){
   if(__initDone){ setMode('study'); } else { __pendingStart = ()=>setMode('study'); }
   updateChips();
 }
-/* override previous parseAndLoad usage in repo loaders */
-
 function parseAndLoad(js){
   const ok = Array.isArray(js) ? js.filter(d=>d && typeof d.front==='string' && typeof d.back==='string') : [];
   if(!ok.length) throw new Error('배열/형식 확인 필요');
@@ -359,16 +486,8 @@ function parseAndLoad(js){
   if(__initDone){ setMode('study'); } else { __pendingStart = ()=>setMode('study'); }
   updateChips();
 }
-const DEFAULT_JSON_PATH = './words.json';
-$('loadUrlBtn').onclick = async ()=>{
-  try{
-    const js = await fetchJsonFromUrl(DEFAULT_JSON_PATH);
-    parseAndLoad(js);
-  }catch(e){
-    alert('가져오기 실패: ' + (e?.message || e));
-  }
-};
 
+const DEFAULT_JSON_PATH = './words.json';
 
 /* ===================== Modes ===================== */
 currentModeLabel = '—';
@@ -378,21 +497,21 @@ function setMode(m){
   initAudio(); hideAll();
   if(m==='study'){
     currentModeLabel='학습'; isQuiz=false;
-    document.getElementById('flashcardUi').classList.remove('hidden');
+    $('flashcardUi').classList.remove('hidden');
     idx=0; loadCard(false);
   }else if(m==='quiz'){
     currentModeLabel='퀴즈'; isQuiz=true;
-    document.getElementById('flashcardUi').classList.remove('hidden');
+    $('flashcardUi').classList.remove('hidden');
     idx=0; loadCard(true);
   }else if(m==='listen'){
     currentModeLabel='듣고 찾기'; isQuiz=false;
-    document.getElementById('listenUi').classList.remove('hidden'); startListen();
+    $('listenUi').classList.remove('hidden'); startListen();
   }else if(m==='spelling'){
     currentModeLabel='Spelling'; isQuiz=false;
-    document.getElementById('spellingUi').classList.remove('hidden'); startSpelling();
+    $('spellingUi').classList.remove('hidden'); startSpelling();
   }else if(m==='match'){
     currentModeLabel='Game'; isQuiz=false;
-    document.getElementById('matchUi').classList.remove('hidden'); startMatch();
+    $('matchUi').classList.remove('hidden'); startMatch();
   }
   updateChips();
 }
@@ -402,44 +521,40 @@ const flashcard=$('flashcard'), front=$('cardFront'), back=$('cardBack');
 __initDone = true; if(typeof __pendingStart==='function'){ __pendingStart(); __pendingStart=null; }
 function loadCard(quiz){
   const c = data[idx];
-  const card = document.getElementById('flashcard');
-  const frontEl = document.getElementById('cardFront');
-  const backEl = document.getElementById('cardBack');
+  const card = $('flashcard');
+  const frontEl = $('cardFront');
+  const backEl = $('cardBack');
 
-  // Reset state
   card.classList.remove('is-flipped');
   frontEl.textContent = '';
   backEl.textContent = '';
 
-  // Counter
-  document.getElementById('cardCounter').textContent = `${idx+1} / ${data.length}`;
+  $('cardCounter').textContent = `${idx+1} / ${data.length}`;
 
   if(!quiz){
-    // Study: FRONT=English(word), BACK=Korean(meaning)
     frontEl.textContent = c.back || '(빈)';
     backEl.textContent  = c.front || '(빈)';
     frontEl.style.color = '#0b1220'; backEl.style.color = '#0b1220';
-    document.getElementById('countdownDisplay').textContent='카드를 탭하면 뒤집혀요';
-    document.getElementById('prevBtn').disabled=false;
-    document.getElementById('nextBtn').disabled=false;
+    $('countdownDisplay').textContent='카드를 탭하면 뒤집혀요';
+    $('prevBtn').disabled=false;
+    $('nextBtn').disabled=false;
     card.onclick = ()=>{ card.classList.toggle('is-flipped'); sfxFlip(); speak(c.back||''); };
   }else{
-    // Quiz: front only, auto flip -> set back text after flip
     frontEl.textContent = c.back || '(빈)';
     frontEl.style.color = '#0b1220';
-    document.getElementById('prevBtn').disabled=true;
-    document.getElementById('nextBtn').disabled=true;
+    $('prevBtn').disabled=true;
+    $('nextBtn').disabled=true;
     let cnt = QUIZ_DELAY/1000;
-    document.getElementById('countdownDisplay').textContent = `${cnt} 초 후 뒤집힘`;
+    $('countdownDisplay').textContent = `${cnt} 초 후 뒤집힘`;
     clearInterval(countdownInterval);
-    countdownInterval = setInterval(()=>{ cnt--; if(cnt>0) document.getElementById('countdownDisplay').textContent = `${cnt} 초 후 뒤집힘`; }, 1000);
+    countdownInterval = setInterval(()=>{ cnt--; if(cnt>0) $('countdownDisplay').textContent = `${cnt} 초 후 뒤집힘`; }, 1000);
     clearTimeout(flipTimer);
     flipTimer = setTimeout(()=>{
       card.classList.add('is-flipped'); sfxFlip();
       setTimeout(()=>{
         backEl.textContent = c.front || '(빈)';
         backEl.style.color = '#0b1220';
-        document.getElementById('countdownDisplay').textContent='';
+        $('countdownDisplay').textContent='';
         setTimeout(()=>{ advance('next'); }, 1200);
       }, 300);
     }, QUIZ_DELAY);
@@ -447,8 +562,8 @@ function loadCard(quiz){
   }
 }
 function advance(dir){ idx = dir==='next'? (idx+1)%data.length : (idx-1+data.length)%data.length; loadCard(isQuiz); }
-function nextCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('next'),60); } }
-function prevCard(){ if(!isQuiz){ flashcard.classList.remove('is-flipped'); setTimeout(()=>advance('prev'),60); } }
+function nextCard(){ if(!data.length) return; $('flashcard').classList.remove('is-flipped'); idx = (idx + 1) % data.length; loadCard(isQuiz); }
+function prevCard(){ if(!data.length) return; $('flashcard').classList.remove('is-flipped'); idx = (idx - 1 + data.length) % data.length; loadCard(isQuiz); }
 
 /* ===================== Listen ===================== */
 function startListen(custom){ const base=Array.isArray(custom)&&custom.length?custom:data; listenSet=shuffle(base); listenIdx=0; listenWrong.clear(); loadListenQ(); }
